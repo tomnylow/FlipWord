@@ -9,9 +9,6 @@ interface DeckDao {
     @Query("SELECT * FROM decks ORDER BY name ASC")
     fun getAllDecks(): Flow<List<DeckEntity>>
 
-    @Query("SELECT * FROM decks WHERE ownerId = :ownerId ORDER BY name ASC")
-    fun getDecksByOwnerId(ownerId: Long): Flow<List<DeckEntity>>
-
     @Query("SELECT * FROM decks WHERE id = :id")
     suspend fun getDeckById(id: Long): DeckEntity?
 

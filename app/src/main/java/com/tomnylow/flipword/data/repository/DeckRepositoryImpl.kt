@@ -19,12 +19,6 @@ class DeckRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getDecksByOwnerId(ownerId: Long): Flow<List<Deck>> {
-        return deckDao.getDecksByOwnerId(ownerId).map { entities ->
-            entities.map { it.toDomain() }
-        }
-    }
-
     override suspend fun getDeckById(id: Long): Deck? {
         return deckDao.getDeckById(id)?.toDomain()
     }
