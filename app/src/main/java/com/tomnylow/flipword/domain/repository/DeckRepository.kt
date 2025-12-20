@@ -4,6 +4,7 @@ import com.tomnylow.flipword.domain.model.Deck
 import kotlinx.coroutines.flow.Flow
 
 interface DeckRepository {
+    fun getAllDecks(): Flow<List<Deck>>
     fun getDecksByOwnerId(ownerId: Long): Flow<List<Deck>>
     suspend fun getDeckById(id: Long): Deck?
     suspend fun insertDeck(deck: Deck)

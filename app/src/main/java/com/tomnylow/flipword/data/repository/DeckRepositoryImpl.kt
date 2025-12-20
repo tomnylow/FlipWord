@@ -12,6 +12,13 @@ import javax.inject.Inject
 class DeckRepositoryImpl @Inject constructor(
     private val deckDao: DeckDao
 ) : DeckRepository {
+
+    override fun getAllDecks(): Flow<List<Deck>> {
+        return deckDao.getAllDecks().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     override fun getDecksByOwnerId(ownerId: Long): Flow<List<Deck>> {
         return deckDao.getDecksByOwnerId(ownerId).map { entities ->
             entities.map { it.toDomain() }
