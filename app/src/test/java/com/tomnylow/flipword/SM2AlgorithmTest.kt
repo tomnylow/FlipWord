@@ -1,8 +1,8 @@
 package com.tomnylow.flipword
 
-import com.tomnylow.flipword.domain.Rating
-import com.tomnylow.flipword.domain.SM2Algorithm
-import com.tomnylow.flipword.domain.SM2Params
+import com.tomnylow.flipword.domain.sm2.Rating
+import com.tomnylow.flipword.domain.sm2.SM2Algorithm
+import com.tomnylow.flipword.domain.sm2.SM2Params
 
 
 import java.time.LocalDate

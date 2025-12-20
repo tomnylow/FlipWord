@@ -1,5 +1,4 @@
-
-package com.tomnylow.flipword.domain
+package com.tomnylow.flipword.domain.sm2
 
 import java.time.LocalDate
 
@@ -34,7 +33,6 @@ object SM2Algorithm {
         currentDate: LocalDate = LocalDate.now()
     ): SM2Params {
         return when {
-            // Если оценка 0-2, сбрасываем прогресс
             rating.value <= 2 -> {
                 SM2Params(
                     easeFactor = maxOf(1.3, currentParams.easeFactor - 0.2),
@@ -43,7 +41,6 @@ object SM2Algorithm {
                     nextReviewDate = currentDate.plusDays(1)
                 )
             }
-            // Если оценка 3-5, увеличиваем интервал
             else -> {
                 val newRepetition = currentParams.repetition + 1
                 val newEaseFactor = calculateNewEaseFactor(currentParams.easeFactor, rating)
