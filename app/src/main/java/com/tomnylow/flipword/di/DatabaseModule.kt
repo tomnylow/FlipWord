@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import com.tomnylow.flipword.data.local.CardDao
 import com.tomnylow.flipword.data.local.DeckDao
-import com.tomnylow.flipword.data.local.UserDao
 import com.tomnylow.flipword.data.local.FlipWordDatabase
 import dagger.Module
 import dagger.Provides
@@ -24,12 +23,7 @@ object DatabaseModule {
             context,
             FlipWordDatabase::class.java,
             "flipword_database"
-        ).fallbackToDestructiveMigration(true).build() // TODO: Удалить в финальной версии
-    }
-
-    @Provides
-    fun provideUserDao(database: FlipWordDatabase): UserDao {
-        return database.userDao()
+        ).fallbackToDestructiveMigration(true).build()
     }
 
     @Provides
