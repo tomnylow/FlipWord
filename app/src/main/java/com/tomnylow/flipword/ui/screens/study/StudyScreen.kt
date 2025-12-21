@@ -10,10 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Deck
+
 @Composable
 fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
@@ -22,24 +22,25 @@ fun StudyScreen(
     val decks by viewModel.decks.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        if (decks.isEmpty()) {
-            EmptyState()
-        } else {
-            DecksList(decks = decks, onDeckClick = onDeckClick)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showDialog = true }
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Создать колоду")
+            }
         }
-
-        FloatingActionButton(
-            onClick = { showDialog = true },
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 16.dp)
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Создать колоду")
+            if (decks.isEmpty()) {
+                EmptyState()
+            } else {
+                DecksList(decks = decks, onDeckClick = onDeckClick)
+            }
         }
     }
 
@@ -53,6 +54,7 @@ fun StudyScreen(
         )
     }
 }
+
 @Composable
 private fun EmptyState() {
     Box(
