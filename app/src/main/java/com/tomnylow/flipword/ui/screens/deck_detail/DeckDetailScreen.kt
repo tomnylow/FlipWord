@@ -34,7 +34,7 @@ fun DeckDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(deck?.name ?: "Ошибка загрузки колоды") },
+                title = { Text(deck?.name ?: "Загрузка...") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
