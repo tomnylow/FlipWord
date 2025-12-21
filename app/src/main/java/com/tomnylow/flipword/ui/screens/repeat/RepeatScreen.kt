@@ -60,7 +60,6 @@ fun RepeatScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (currentCard == null) {
-                // Session complete or no cards to review
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Карточки для повторения закончились!")
                 }

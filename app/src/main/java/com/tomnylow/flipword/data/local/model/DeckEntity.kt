@@ -8,22 +8,20 @@ import com.tomnylow.flipword.domain.model.Deck
 data class DeckEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val name: String,
-    val ownerId: Long
+    val name: String
 )
 
 fun DeckEntity.toDomain(): Deck {
     return Deck(
         id = id,
-        name = name,
-        ownerId = ownerId
+        name = name
+
     )
 }
 
 fun Deck.toEntity(): DeckEntity {
     return DeckEntity(
         id = id,
-        name = name,
-        ownerId = ownerId
+        name = name
     )
 }
