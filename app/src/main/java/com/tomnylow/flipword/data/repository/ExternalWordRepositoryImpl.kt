@@ -55,7 +55,7 @@ class ExternalWordRepositoryImpl @Inject constructor(
             } else {
 
                 val translatedExamples = examples.map { ex ->
-                    val trans = translationApi.translate(text = ex, from = "en", to = language.split("-").last())
+                    val trans = translationApi.translate(text = ex, from = "en", to = language)
                     parseGoogleTranslation(trans)
                 }
                 Result.success(translatedExamples)

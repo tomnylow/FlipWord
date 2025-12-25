@@ -14,3 +14,16 @@ interface TranslationApi {
         @Query("dt") dt: String = "t"
     ): JsonElement
 }
+/* Пример ответа:
+    [
+        [
+            ["привет","hello",null,null,10]
+        ],
+        null,
+        "en",
+        null,
+        null,
+        null,
+        []
+    ]
+ */
