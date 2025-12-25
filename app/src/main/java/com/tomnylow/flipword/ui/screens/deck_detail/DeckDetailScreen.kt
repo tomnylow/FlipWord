@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,12 +14,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
     deckId: Long,
-    viewModel: DeckDetailViewModel = hiltViewModel(creationCallback = {factory : DeckDetailViewModel.Factory ->
+    viewModel: DeckDetailViewModel = hiltViewModel(creationCallback = { factory: DeckDetailViewModel.Factory ->
         factory.create(deckId)
     }),
     onNavigateBack: () -> Unit,
@@ -29,6 +30,7 @@ fun DeckDetailScreen(
 ) {
     val deck by viewModel.deck.collectAsState()
     val cards by viewModel.cards.collectAsState()
+    val isAutoFilling by viewModel.isAutoFilling.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -69,10 +71,14 @@ fun DeckDetailScreen(
 
     if (showDialog) {
         NewCardDialog(
+            isAutoFilling = isAutoFilling,
             onDismiss = { showDialog = false },
-            onConfirm = { word, translation ->
-                viewModel.insertCard(word, translation)
+            onConfirm = { word, translation, definition, example ->
+                viewModel.insertCard(word, translation, definition, example)
                 showDialog = false
+            },
+            onAutoFill = { word ->
+                viewModel.autoFillCard(word)
             }
         )
     }
@@ -122,14 +128,30 @@ fun CardItem(card: Card) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            if (!card.definition.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = card.definition,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun NewCardDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+private fun NewCardDialog(
+    isAutoFilling: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String?, String?) -> Unit,
+    onAutoFill: suspend (String) -> Triple<String?, String?, String?>
+) {
     var word by remember { mutableStateOf("") }
     var translation by remember { mutableStateOf("") }
+    var definition by remember { mutableStateOf("") }
+    var example by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -140,7 +162,28 @@ private fun NewCardDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> 
                     value = word,
                     onValueChange = { word = it },
                     label = { Text("Слово") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        if (word.isNotBlank()) {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        val (t, d, e) = onAutoFill(word)
+                                        if (t != null) translation = t
+                                        if (d != null) definition = d
+                                        if (e != null) example = e
+                                    }
+                                },
+                                enabled = !isAutoFilling
+                            ) {
+                                if (isAutoFilling) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                } else {
+                                    Icon(imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
+                                }
+                            }
+                        }
+                    }
                 )
                 OutlinedTextField(
                     value = translation,
@@ -148,12 +191,26 @@ private fun NewCardDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> 
                     label = { Text("Перевод") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                OutlinedTextField(
+                    value = definition,
+                    onValueChange = { definition = it },
+                    label = { Text("Определение (необязательно)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3
+                )
+                OutlinedTextField(
+                    value = example,
+                    onValueChange = { example = it },
+                    label = { Text("Пример (необязательно)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 2
+                )
             }
         },
         confirmButton = {
             Button(
-                onClick = { if (word.isNotBlank()) onConfirm(word, translation) },
-                enabled = word.isNotBlank()
+                onClick = { if (word.isNotBlank() && translation.isNotBlank()) onConfirm(word, translation, definition, example) },
+                enabled = word.isNotBlank() && translation.isNotBlank() && !isAutoFilling
             ) {
                 Text("Создать")
             }
