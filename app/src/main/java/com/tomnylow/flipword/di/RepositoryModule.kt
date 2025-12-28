@@ -2,8 +2,10 @@ package com.tomnylow.flipword.di
 
 import com.tomnylow.flipword.data.repository.CardRepositoryImpl
 import com.tomnylow.flipword.data.repository.DeckRepositoryImpl
+import com.tomnylow.flipword.data.repository.ExternalWordRepositoryImpl
 import com.tomnylow.flipword.domain.repository.CardRepository
 import com.tomnylow.flipword.domain.repository.DeckRepository
+import com.tomnylow.flipword.domain.repository.ExternalWordRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindCardRepository(
         cardRepositoryImpl: CardRepositoryImpl
     ): CardRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindExternalWordRepository(
+        externalWordRepositoryImpl: ExternalWordRepositoryImpl
+    ): ExternalWordRepository
 }
