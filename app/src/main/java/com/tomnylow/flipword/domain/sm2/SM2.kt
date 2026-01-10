@@ -1,5 +1,6 @@
 package com.tomnylow.flipword.domain.sm2
 
+import com.tomnylow.flipword.domain.model.Card
 import java.time.LocalDate
 
 data class SM2Params(
@@ -71,7 +72,7 @@ object SM2Algorithm {
     }
 
 
-    fun isTimeForReview(params: SM2Params, currentDate: LocalDate = LocalDate.now()): Boolean {
-        return !params.nextReviewDate.isAfter(currentDate)
+    fun Card.isTimeForReview(currentDate: LocalDate = LocalDate.now()): Boolean {
+        return !sm2Params.nextReviewDate.isAfter(currentDate)
     }
 }
