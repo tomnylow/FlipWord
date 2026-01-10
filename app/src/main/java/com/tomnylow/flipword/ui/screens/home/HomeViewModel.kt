@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.domain.usecase.card.GetAllDueCardsUseCase
 import com.tomnylow.flipword.domain.usecase.card.GetDueCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetAllDecksUseCase
 import com.tomnylow.flipword.domain.usecase.user.GetDailyStreakUseCase
@@ -28,8 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 class HomeViewModel @Inject constructor(
     private val getDailyStreakUseCase: GetDailyStreakUseCase,
     private val getWordOfTheDayUseCase: GetWordOfTheDayUseCase,
-    private val getDueCardsForDeckUseCase: GetDueCardsForDeckUseCase,
-    private val getAllDecksUseCase: GetAllDecksUseCase
+    private val getAllDueCardsUseCase: GetAllDueCardsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -55,18 +55,7 @@ class HomeViewModel @Inject constructor(
         }
     }
     private fun observeDueCards() {
-        getAllDecksUseCase().flatMapLatest { decks ->
-            if (decks.isEmpty()) {
-                flowOf(emptyList())
-            } else {
-                val dueCardFlows = decks.map { deck ->
-                    getDueCardsForDeckUseCase(deck.id)
-                }
-                combine(dueCardFlows) { dueCardsArray ->
-                    dueCardsArray.toList().flatten()
-                }
-            }
-        }.onEach { dueCards ->
+        getAllDueCardsUseCase().onEach { dueCards ->
             _state.update { it.copy(dueCards = dueCards) }
         }.launchIn(viewModelScope)
     }
