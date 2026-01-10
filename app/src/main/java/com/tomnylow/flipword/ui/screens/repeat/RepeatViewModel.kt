@@ -7,6 +7,7 @@ import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
 import com.tomnylow.flipword.domain.sm2.SM2Algorithm
 import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
+import com.tomnylow.flipword.domain.usecase.card.GetDueCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.card.UpdateCardUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 class RepeatViewModel @AssistedInject constructor(
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
     private val updateCardUseCase: UpdateCardUseCase,
+    private val getDueCardsForDeckUseCase: GetDueCardsForDeckUseCase,
    @Assisted("deckId") private val deckId: Long
 ) : ViewModel() {
 
@@ -39,8 +41,7 @@ class RepeatViewModel @AssistedInject constructor(
 
     private fun loadCardsToReview() {
         viewModelScope.launch {
-            val allCards = getCardsForDeckUseCase(deckId).first()
-            _cardsToReview.value = allCards.filter { SM2Algorithm.isTimeForReview(it.sm2Params) }
+            _cardsToReview.value = getDueCardsForDeckUseCase(deckId).first()
             _currentCard.value = _cardsToReview.value.getOrNull(currentIndex)
         }
     }
