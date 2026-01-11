@@ -23,11 +23,7 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
         startDestination = BottomNavItem.Home.route
     ) {
         composable(BottomNavItem.Home.route) {
-            HomeScreen(
-                onRepeatWordsClick = {
-                    navController.navigate(Screen.Repeat.createRoute(null))
-                }
-            )
+            HomeScreen(onRepeatWordsClick = { navController.navigate(Screen.Repeat.createRoute(null)) })
         }
         composable(BottomNavItem.Study.route) {
             StudyScreen(onDeckClick = {
@@ -48,16 +44,15 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
                 },
                 onRepeatClick = { deckId ->
                     navController.navigate(Screen.Repeat.createRoute(deckId))
-                },
-                deckId = Screen.getDeckId(it.arguments)!!
+                }
             )
         }
         composable(
-            Screen.Learn.route
+            Screen.Learn.route,
+            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
         ) {
             LearnScreen(
-                onNavigateBack = { navController.popBackStack() },
-                deckId = Screen.getDeckId(it.arguments)!!
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(

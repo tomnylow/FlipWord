@@ -38,11 +38,7 @@ import com.tomnylow.flipword.domain.model.Card
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LearnScreen(
-    deckId: Long,
-    viewModel: LearnViewModel = hiltViewModel(creationCallback = {
-        factory: LearnViewModel.Factory ->
-        factory.create(deckId)
-    }),
+    viewModel: LearnViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val cards by viewModel.cards.collectAsState()

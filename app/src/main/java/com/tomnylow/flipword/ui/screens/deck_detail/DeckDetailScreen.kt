@@ -19,10 +19,7 @@ import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
-    deckId: Long,
-    viewModel: DeckDetailViewModel = hiltViewModel(creationCallback = { factory: DeckDetailViewModel.Factory ->
-        factory.create(deckId)
-    }),
+    viewModel: DeckDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onLearnClick: (Long) -> Unit,
     onRepeatClick: (Long) -> Unit

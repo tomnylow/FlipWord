@@ -5,9 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +12,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = LearnViewModel.Factory::class)
-class LearnViewModel @AssistedInject constructor(
+@HiltViewModel
+class LearnViewModel @Inject constructor(
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
-    @Assisted private val deckId: Long
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val deckId: Long = savedStateHandle.get<Long>("deckId")!!
 
     private val _cards = MutableStateFlow<List<Card>>(emptyList())
     val cards = _cards.asStateFlow()
@@ -35,9 +33,5 @@ class LearnViewModel @AssistedInject constructor(
                 _cards.value = cards
             }
             .launchIn(viewModelScope)
-    }
-    @AssistedFactory
-    interface Factory {
-        fun create(deckId: Long): LearnViewModel
     }
 }
