@@ -50,7 +50,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 val wordOfTheDay = getWordOfTheDayUseCase()
-                it.copy(wordOfTheDay = wordOfTheDay.first, difinitionOfTheDay = wordOfTheDay.second.getOrNull())
+                it.copy(wordOfTheDay = wordOfTheDay.first, difinitionOfTheDay = wordOfTheDay.second)
             }
         }
     }
@@ -63,6 +63,6 @@ class HomeViewModel @Inject constructor(
 data class HomeState(
     val dailyStreak: Int = 0,
     val wordOfTheDay: String = "",
-    val difinitionOfTheDay: String? = "",
+    val difinitionOfTheDay: String? = null,
     val dueCards: List<Card> = emptyList()
 )
