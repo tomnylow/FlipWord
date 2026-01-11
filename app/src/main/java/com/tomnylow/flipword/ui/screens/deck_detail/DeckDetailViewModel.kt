@@ -8,17 +8,19 @@ import com.tomnylow.flipword.domain.model.Deck
 import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.card.InsertCardUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetDeckByIdUseCase
-import com.tomnylow.flipword.domain.usecase.external.GetDefinitionUseCase
+import com.tomnylow.flipword.domain.usecase.external.GetDictionaryDataUseCase
 import com.tomnylow.flipword.domain.usecase.external.GetTranslationUseCase
-import com.tomnylow.flipword.domain.usecase.external.GetUsageExamplesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,103 +29,153 @@ class DeckDetailViewModel @Inject constructor(
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
     private val insertCardUseCase: InsertCardUseCase,
     private val getTranslationUseCase: GetTranslationUseCase,
-    private val getDefinitionUseCase: GetDefinitionUseCase,
-    private val getUsageExamplesUseCase: GetUsageExamplesUseCase,
+    private val getDictionaryDataUseCase: GetDictionaryDataUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val deckId: Long = savedStateHandle.get<Long>("deckId")!!
 
-    private val _deck = MutableStateFlow<Deck?>(null)
-    val deck = _deck.asStateFlow()
+    private val _state = MutableStateFlow(DeckDetailState())
+    val state = _state.asStateFlow()
 
-    private val _cards = MutableStateFlow<List<Card>>(emptyList())
-    val cards = _cards.asStateFlow()
+    private val _snackbarMessage = MutableSharedFlow<String>()
+    val snackbarMessage = _snackbarMessage.asSharedFlow()
 
-    private val _newCardState = MutableStateFlow(NewCardState())
-    val newCardState = _newCardState.asStateFlow()
+    private var autoFillJob: Job? = null
 
     init {
+        loadDeckAndCards()
+    }
+
+    private fun loadDeckAndCards() {
         viewModelScope.launch {
-            _deck.value = getDeckByIdUseCase(deckId)
-            getCardsForDeckUseCase(deckId).onEach { cards ->
-                _cards.value = cards
-            }.launchIn(this)
+            _state.update { it.copy(isLoading = true) }
+            try {
+                val deck = getDeckByIdUseCase(deckId)
+                getCardsForDeckUseCase(deckId).onEach { cards ->
+                    _state.update { state ->
+                        state.copy(
+                            deck = deck,
+                            cards = cards,
+                            isLoading = false
+                        )
+                    }
+                }.launchIn(this)
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false) }
+                _snackbarMessage.emit("Ошибка загрузки колоды")
+            }
         }
     }
 
     fun onWordChange(word: String) {
-        _newCardState.update { it.copy(word = word) }
+        _state.update { it.copy(newCard = it.newCard.copy(word = word)) }
     }
 
     fun onTranslationChange(translation: String) {
-        _newCardState.update { it.copy(translation = translation) }
+        _state.update { it.copy(newCard = it.newCard.copy(translation = translation)) }
     }
 
     fun onDefinitionChange(definition: String) {
-        _newCardState.update { it.copy(definition = definition) }
+        _state.update { it.copy(newCard = it.newCard.copy(definition = definition)) }
     }
 
     fun onExampleChange(example: String) {
-        _newCardState.update { it.copy(example = example) }
+        _state.update { it.copy(newCard = it.newCard.copy(example = example)) }
     }
 
     fun autoFillCard() {
-        val word = _newCardState.value.word
+        val word = _state.value.newCard.word
         if (word.isBlank()) return
 
-        viewModelScope.launch {
-            _newCardState.update { it.copy(isAutoFilling = true) }
-            try {
-                val translationDeferred = async { getTranslationUseCase(word).getOrNull() }
-                val definitionDeferred = async { getDefinitionUseCase(word).getOrNull() }
-                val examplesDeferred = async { getUsageExamplesUseCase(word).getOrNull() }
+        autoFillJob?.cancel()
+        autoFillJob = viewModelScope.launch {
+            _state.update { it.copy(isAutoFilling = true) }
 
-                val translation = translationDeferred.await()
-                val definition = definitionDeferred.await()
-                val example = examplesDeferred.await()?.firstOrNull()
+            var translation: String? = null
+            var definition: String? = null
+            var example: String? = null
 
-                _newCardState.update { state ->
-                    state.copy(
-                        translation = translation ?: state.translation,
-                        definition = definition ?: state.definition,
-                        example = example ?: state.example,
-                        isAutoFilling = false
-                    )
+            var translationSuccess = false
+            var dictionarySuccess = false
+
+            translation = withTimeoutOrNull(8000L) {
+                getTranslationUseCase(word)
+            }?.also { translationSuccess = true }
+
+            withTimeoutOrNull(8000L) {
+                getDictionaryDataUseCase(word)
+            }?.let {
+                definition = it.definition
+                example = it.example
+                dictionarySuccess = true
+            }
+
+            _state.update { state ->
+                state.copy(
+                    newCard = state.newCard.copy(
+                        translation = translation ?: state.newCard.translation,
+                        definition = definition ?: state.newCard.definition,
+                        example = example ?: state.newCard.example
+                    ),
+                    isAutoFilling = false
+                )
+            }
+
+            when {
+                !translationSuccess && !dictionarySuccess -> {
+                    _snackbarMessage.emit("Не удалось получить данные: проверьте подключение")
                 }
-            } catch (e: Exception) {
-                _newCardState.update { it.copy(isAutoFilling = false) }
+                !translationSuccess -> {
+                    _snackbarMessage.emit("Не удалось получить перевод")
+                }
+                !dictionarySuccess -> {
+                    _snackbarMessage.emit("Не удалось получить определение или пример")
+                }
             }
         }
     }
 
     fun insertCard() {
-        val state = _newCardState.value
-        if (state.word.isBlank() || state.translation.isBlank()) return
+        val card = _state.value.newCard
+        if (card.word.isBlank() || card.translation.isBlank()) return
 
         viewModelScope.launch {
-            insertCardUseCase(
-                Card(
-                    word = state.word,
-                    translation = state.translation,
-                    definition = state.definition.ifBlank { null },
-                    usageExample = state.example.ifBlank { null },
-                    deckId = deckId
+            try {
+                insertCardUseCase(
+                    Card(
+                        word = card.word,
+                        translation = card.translation,
+                        definition = card.definition.ifBlank { null },
+                        usageExample = card.example.ifBlank { null },
+                        deckId = deckId
+                    )
                 )
-            )
-            _newCardState.value = NewCardState() // Сброс после добавления
+                clearNewCardState()
+            } catch (e: Exception) {
+                _snackbarMessage.emit("Ошибка сохранения карточки")
+            }
         }
     }
 
     fun clearNewCardState() {
-        _newCardState.value = NewCardState()
+        autoFillJob?.cancel()
+        autoFillJob = null
+        _state.update { it.copy(newCard = NewCardState()) }
     }
 }
+
+data class DeckDetailState(
+    val deck: Deck? = null,
+    val cards: List<Card> = emptyList(),
+    val newCard: NewCardState = NewCardState(),
+    val isLoading: Boolean = false,
+    val isAutoFilling: Boolean = false
+)
 
 data class NewCardState(
     val word: String = "",
     val translation: String = "",
     val definition: String = "",
-    val example: String = "",
-    val isAutoFilling: Boolean = false
+    val example: String = ""
 )
