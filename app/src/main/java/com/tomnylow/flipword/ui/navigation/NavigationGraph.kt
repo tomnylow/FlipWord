@@ -23,7 +23,11 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
         startDestination = BottomNavItem.Home.route
     ) {
         composable(BottomNavItem.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onRepeatWordsClick = {
+                    navController.navigate(Screen.Repeat.createRoute(null))
+                }
+            )
         }
         composable(BottomNavItem.Study.route) {
             StudyScreen(onDeckClick = {
@@ -34,7 +38,8 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
             ProfileScreen()
         }
         composable(
-            Screen.DeckDetail.route
+            Screen.DeckDetail.route,
+            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
         ) {
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -44,7 +49,7 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
                 onRepeatClick = { deckId ->
                     navController.navigate(Screen.Repeat.createRoute(deckId))
                 },
-                deckId = Screen.getDeckId(it.arguments)
+                deckId = Screen.getDeckId(it.arguments)!!
             )
         }
         composable(
@@ -52,14 +57,17 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
         ) {
             LearnScreen(
                 onNavigateBack = { navController.popBackStack() },
-                deckId = Screen.getDeckId(it.arguments)
+                deckId = Screen.getDeckId(it.arguments)!!
             )
         }
         composable(
-            Screen.Repeat.route
+            Screen.Repeat.route,
+            arguments = listOf(navArgument("deckId") {
+                type = NavType.StringType
+                nullable = true
+            })
         ) {
-            RepeatScreen(onNavigateBack = { navController.popBackStack() },
-                deckId = Screen.getDeckId(it.arguments))
+            RepeatScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

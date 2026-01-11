@@ -2,7 +2,6 @@ package com.tomnylow.flipword.ui.screens.repeat
 
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,11 +36,7 @@ import com.tomnylow.flipword.domain.sm2.Rating
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepeatScreen(
-    deckId: Long,
-    viewModel: RepeatViewModel = hiltViewModel(creationCallback = {
-        factory: RepeatViewModel.Factory ->
-        factory.create(deckId)
-    }),
+    viewModel: RepeatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val currentCard by viewModel.currentCard.collectAsState()
