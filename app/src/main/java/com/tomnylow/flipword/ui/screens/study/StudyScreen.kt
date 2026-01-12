@@ -1,19 +1,23 @@
 package com.tomnylow.flipword.ui.screens.study
 
+import android.R.attr.text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Deck
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
@@ -23,12 +27,21 @@ fun StudyScreen(
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showDialog = true }
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Создать колоду")
-            }
+        topBar = {
+            TopAppBar(
+                title = { Text("Колоды") },
+                actions = {
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                showDialog = true
+                            },
+                        imageVector = Icons.Filled.Add, contentDescription = "Создать колоду"
+                    )
+                }
+            )
         }
     ) { innerPadding ->
         Box(

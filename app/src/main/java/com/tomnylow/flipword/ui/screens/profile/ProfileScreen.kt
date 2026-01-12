@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -37,65 +38,69 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
 
     val state by viewModel.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Профиль и настройки",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    Scaffold { paddingValues ->
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Аккаунт", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Профиль и настройки",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Аккаунт", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Settings section
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Настройки", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(16.dp))
+            // Settings section
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Настройки", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownSettingItem(
-                    title = "Родной язык",
-                    value = state.settings.nativeLanguage.displayName,
-                    items = Language.entries,
-                    itemToString = { it.displayName },
-                    onItemSelected = { viewModel.updateNativeLanguage(it) }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                    DropdownSettingItem(
+                        title = "Родной язык",
+                        value = state.settings.nativeLanguage.displayName,
+                        items = Language.entries,
+                        itemToString = { it.displayName },
+                        onItemSelected = { viewModel.updateNativeLanguage(it) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownSettingItem(
-                    title = "Изучаемый язык",
-                    value = state.settings.learningLanguage.displayName,
-                    items = Language.entries,
-                    itemToString = { it.displayName },
-                    onItemSelected = { viewModel.updateLearningLanguage(it) }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                    DropdownSettingItem(
+                        title = "Изучаемый язык",
+                        value = state.settings.learningLanguage.displayName,
+                        items = Language.entries,
+                        itemToString = { it.displayName },
+                        onItemSelected = { viewModel.updateLearningLanguage(it) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                DropdownSettingItem(
-                    title = "Тема приложения",
-                    value = state.settings.theme.displayName,
-                    items = AppTheme.entries,
-                    itemToString = { it.displayName },
-                    onItemSelected = { viewModel.updateTheme(it) }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                    DropdownSettingItem(
+                        title = "Тема приложения",
+                        value = state.settings.theme.displayName,
+                        items = AppTheme.entries,
+                        itemToString = { it.displayName },
+                        onItemSelected = { viewModel.updateTheme(it) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                SwitchSettingItem (
-                    title = "Уведомления",
-                    checked = state.settings.notificationsEnabled,
-                    onCheckedChange = { viewModel.updateNotificationsEnabled(it) }
-                )
+                    SwitchSettingItem(
+                        title = "Уведомления",
+                        checked = state.settings.notificationsEnabled,
+                        onCheckedChange = { viewModel.updateNotificationsEnabled(it) }
+                    )
+                }
             }
         }
     }

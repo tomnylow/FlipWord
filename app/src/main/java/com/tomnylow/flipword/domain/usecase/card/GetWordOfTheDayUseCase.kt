@@ -7,8 +7,16 @@ class GetWordOfTheDayUseCase @Inject constructor(
     private val externalWordRepository: ExternalWordRepository
 ) {
     private val words = listOf(
-        "kotlin", "jetpack", "compose", "android", "flow",
-        "coroutine", "suspend", "viewmodel", "repository", "hilt"
+        "magenta",
+        "resilience",
+        "ambivalent",
+        "luminous",
+        "ineffable",
+        "gregarious",
+        "surreptitious",
+        "enigmatic",
+        "pristine",
+        "catalyst"
     )
 
     suspend operator fun invoke(): Pair<String, String?> {
