@@ -1,6 +1,5 @@
-package com.tomnylow.flipword.ui.screens.study
+package com.tomnylow.flipword.ui.screens.decks
 
-import android.R.attr.text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,8 +18,8 @@ import com.tomnylow.flipword.domain.model.Deck
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudyScreen(
-    viewModel: StudyViewModel = hiltViewModel(),
+fun DecksScreen(
+    viewModel: DecksViewModel = hiltViewModel(),
     onDeckClick: (Long) -> Unit
 ) {
     val decks by viewModel.decks.collectAsState()

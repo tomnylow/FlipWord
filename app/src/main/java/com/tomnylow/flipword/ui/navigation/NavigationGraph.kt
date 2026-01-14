@@ -12,7 +12,7 @@ import com.tomnylow.flipword.ui.screens.home.HomeScreen
 import com.tomnylow.flipword.ui.screens.learn.LearnScreen
 import com.tomnylow.flipword.ui.screens.profile.ProfileScreen
 import com.tomnylow.flipword.ui.screens.repeat.RepeatScreen
-import com.tomnylow.flipword.ui.screens.study.StudyScreen
+import com.tomnylow.flipword.ui.screens.decks.DecksScreen
 
 
 @Composable
@@ -26,7 +26,7 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
             HomeScreen(onRepeatWordsClick = { navController.navigate(Screen.Repeat.createRoute(null)) })
         }
         composable(BottomNavItem.Study.route) {
-            StudyScreen(onDeckClick = {
+            DecksScreen(onDeckClick = {
                 navController.navigate(Screen.DeckDetail.createRoute(it))
             })
         }

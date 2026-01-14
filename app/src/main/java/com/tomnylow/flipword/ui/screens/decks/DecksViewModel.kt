@@ -1,4 +1,4 @@
-package com.tomnylow.flipword.ui.screens.study
+package com.tomnylow.flipword.ui.screens.decks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class StudyViewModel @Inject constructor(
+class DecksViewModel @Inject constructor(
     private val getAllDecksUseCase: GetAllDecksUseCase,
     private val insertDeckUseCase: InsertDeckUseCase
 ) : ViewModel() {
