@@ -5,17 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
+import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.card.InsertCardUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetDeckByIdUseCase
 import com.tomnylow.flipword.domain.usecase.external.GetDictionaryDataUseCase
 import com.tomnylow.flipword.domain.usecase.external.GetTranslationUseCase
+import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -30,6 +33,7 @@ class DeckDetailViewModel @Inject constructor(
     private val insertCardUseCase: InsertCardUseCase,
     private val getTranslationUseCase: GetTranslationUseCase,
     private val getDictionaryDataUseCase: GetDictionaryDataUseCase,
+    private val getSettingsUseCase: GetSettingsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -52,11 +56,17 @@ class DeckDetailViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 val deck = getDeckByIdUseCase(deckId)
+                val settings = getSettingsUseCase().first()
+
                 getCardsForDeckUseCase(deckId).onEach { cards ->
                     _state.update { state ->
                         state.copy(
                             deck = deck,
                             cards = cards,
+                            newCard = NewCardState(
+                                nativeLanguage = settings.nativeLanguage,
+                                learningLanguage = settings.learningLanguage
+                            ),
                             isLoading = false
                         )
                     }
@@ -84,7 +94,7 @@ class DeckDetailViewModel @Inject constructor(
         _state.update { it.copy(newCard = it.newCard.copy(example = example)) }
     }
 
-    fun autoFillCard() {
+    fun autoFillCard(learningLanguage: Language, nativeLanguage: Language) {
         val word = _state.value.newCard.word
         if (word.isBlank()) return
 
@@ -100,11 +110,11 @@ class DeckDetailViewModel @Inject constructor(
             var dictionarySuccess = false
 
             translation = withTimeoutOrNull(8000L) {
-                getTranslationUseCase(word)
+                getTranslationUseCase(word, learningLanguage.code, nativeLanguage.code)
             }?.also { translationSuccess = true }
 
             withTimeoutOrNull(8000L) {
-                getDictionaryDataUseCase(word)
+                getDictionaryDataUseCase(word, learningLanguage)
             }?.let {
                 definition = it.definition
                 example = it.example
@@ -126,9 +136,11 @@ class DeckDetailViewModel @Inject constructor(
                 !translationSuccess && !dictionarySuccess -> {
                     _snackbarMessage.emit("Не удалось получить данные: проверьте подключение")
                 }
+
                 !translationSuccess -> {
                     _snackbarMessage.emit("Не удалось получить перевод")
                 }
+
                 !dictionarySuccess -> {
                     _snackbarMessage.emit("Не удалось получить определение или пример")
                 }
@@ -161,7 +173,7 @@ class DeckDetailViewModel @Inject constructor(
     fun clearNewCardState() {
         autoFillJob?.cancel()
         autoFillJob = null
-        _state.update { it.copy(newCard = NewCardState()) }
+        _state.update { it.copy(newCard = NewCardState(learningLanguage = it.newCard.learningLanguage, nativeLanguage = it.newCard.nativeLanguage)) }
     }
 }
 
@@ -177,5 +189,7 @@ data class NewCardState(
     val word: String = "",
     val translation: String = "",
     val definition: String = "",
-    val example: String = ""
+    val example: String = "",
+    val nativeLanguage: Language = Language.RUSSIAN,
+    val learningLanguage: Language = Language.ENGLISH,
 )

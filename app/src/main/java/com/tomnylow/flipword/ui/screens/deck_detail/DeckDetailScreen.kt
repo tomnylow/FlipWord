@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
 import kotlinx.coroutines.flow.collectLatest
 
@@ -61,7 +62,9 @@ fun DeckDetailScreen(
                 Icon(Icons.Default.Add, contentDescription = "Добавить карточку")
             }
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -86,7 +89,7 @@ fun DeckDetailScreen(
             onTranslationChange = viewModel::onTranslationChange,
             onDefinitionChange = viewModel::onDefinitionChange,
             onExampleChange = viewModel::onExampleChange,
-            onAutoFill = viewModel::autoFillCard,
+            onAutoFill = {learning, native -> viewModel.autoFillCard(learning, native)},
             onDismiss = {
                 viewModel.clearNewCardState()
                 showDialog = false
@@ -163,7 +166,7 @@ private fun NewCardDialog(
     onTranslationChange: (String) -> Unit,
     onDefinitionChange: (String) -> Unit,
     onExampleChange: (String) -> Unit,
-    onAutoFill: () -> Unit,
+    onAutoFill: (Language, Language) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -175,18 +178,18 @@ private fun NewCardDialog(
                 OutlinedTextField(
                     value = state.word,
                     onValueChange = onWordChange,
-                    label = { Text("Слово") },
+                    label = { Text("Слово (${state.learningLanguage.displayName})") },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         if (state.word.isNotBlank()) {
                             IconButton(
-                                onClick = onAutoFill,
+                                onClick = { onAutoFill(state.learningLanguage, state.nativeLanguage) },
                                 enabled = !isAutoFilling
                             ) {
                                 if (isAutoFilling) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                                 } else {
-                                    Icon(imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
+                                    Icon(modifier = Modifier.size(16.dp), imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
                                 }
                             }
                         }
@@ -195,7 +198,7 @@ private fun NewCardDialog(
                 OutlinedTextField(
                     value = state.translation,
                     onValueChange = onTranslationChange,
-                    label = { Text("Перевод") },
+                    label = { Text("Перевод (${state.nativeLanguage.displayName})") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(

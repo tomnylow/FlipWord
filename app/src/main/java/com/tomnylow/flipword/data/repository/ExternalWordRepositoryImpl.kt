@@ -25,26 +25,26 @@ class ExternalWordRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDictionaryData(word: String, language: String): DictionaryData? {
+    override suspend fun getDictionaryData(word: String, answerLanguage: String): DictionaryData? {
         return try {
             val dictionaryResponse = dictionaryApi.getDefinition(word.trim())
             val firstMeaning = dictionaryResponse.firstOrNull()?.meanings?.firstOrNull()
             val definition = firstMeaning?.definitions?.firstOrNull()?.definition
             val example = firstMeaning?.definitions?.firstOrNull()?.example
 
-            if (language == "en") {
+            if (answerLanguage == "en") {
                 DictionaryData(definition, example)
             } else {
                 coroutineScope {
                     val definitionDeferred = async {
                         definition?.let { def ->
-                            translationApi.translate(text = def, from = "en", to = language)
+                            translationApi.translate(text = def, from = "en", to = answerLanguage)
                                 .let { parseGoogleTranslation(it) }
                         }
                     }
                     val exampleDeferred = async {
                         example?.let { ex ->
-                            translationApi.translate(text = ex, from = "en", to = language)
+                            translationApi.translate(text = ex, from = "en", to = answerLanguage)
                                 .let { parseGoogleTranslation(it) }
                         }
                     }
