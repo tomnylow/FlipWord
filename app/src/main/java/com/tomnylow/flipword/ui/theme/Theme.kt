@@ -10,10 +10,13 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.AppTypography
@@ -112,20 +115,30 @@ val unspecified_scheme = ColorFamily(
 @Composable
 fun FlipWordTheme(
     viewModel: MainViewModel = hiltViewModel(),
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
 
-    val colorScheme = when (settings.theme) {
-        AppTheme.SYSTEM -> if (isSystemInDarkTheme()) darkScheme else lightScheme
-        AppTheme.LIGHT -> lightScheme
-        AppTheme.DARK -> darkScheme
+    val isDark = when (settings.theme) {
+        AppTheme.SYSTEM -> isSystemInDarkTheme()
+        AppTheme.LIGHT -> false
+        AppTheme.DARK -> true
     }
 
-  MaterialTheme(
-    colorScheme = colorScheme,
-    typography = AppTypography,
-    content = content
-  )
+    val colorScheme = if (isDark) darkScheme else lightScheme
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDark
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = AppTypography,
+        content = content
+    )
 }
 
