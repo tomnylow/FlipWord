@@ -54,9 +54,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.navigation.compose)
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
