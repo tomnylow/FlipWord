@@ -54,7 +54,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.navigation.compose)
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text.google.fonts)
