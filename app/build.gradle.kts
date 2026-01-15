@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.tomnylow.flipword"
-        minSdk = 28
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -55,6 +55,12 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    implementation(libs.androidx.material3)
+    ksp(libs.androidx.hilt.compiler)
+
 
     implementation(libs.androidx.core.splashscreen)
 

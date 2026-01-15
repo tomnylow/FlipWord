@@ -2,6 +2,11 @@
 
 package com.tomnylow.flipword.ui.screens.profile
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,9 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,28 +30,37 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
+import com.tomnylow.flipword.notifications.NotificationsHelper
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
-
+    val notificationsHelper = NotificationsHelper(LocalContext.current)
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.updateNotificationsEnabled(true)
+        }
+    }
 
     Scaffold { paddingValues ->
 
@@ -77,12 +89,12 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
             )
 
             Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Аккаунт", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
 
-                }
+                Text(text = "Аккаунт", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -122,7 +134,28 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                     SwitchSettingItem(
                         title = "Уведомления",
                         checked = state.settings.notificationsEnabled,
-                        onCheckedChange = { viewModel.updateNotificationsEnabled(it) }
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    when {
+                                        ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.POST_NOTIFICATIONS
+                                        ) == PackageManager.PERMISSION_GRANTED -> {
+                                            viewModel.updateNotificationsEnabled(true)
+                                        }
+
+                                        else -> {
+                                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        }
+                                    }
+                                } else {
+                                    viewModel.updateNotificationsEnabled(true)
+                                }
+                            } else {
+                                viewModel.updateNotificationsEnabled(false)
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -165,6 +198,7 @@ private fun TimeSettingItem(
         )
     }
 }
+
 @Composable
 fun <T> DropdownSettingItem(
     modifier: Modifier = Modifier,
@@ -246,12 +280,13 @@ fun TimePickerDialog(
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
             modifier = Modifier
-                .widthIn(max = 800.dp) // TODO: Сжатый
-                .padding(48.dp)
+                .fillMaxWidth()
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(24.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
                 Text(
                     text = "Выберите время",
