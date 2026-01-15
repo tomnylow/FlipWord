@@ -22,7 +22,9 @@ class SettingsDataStore @Inject constructor(@ApplicationContext context: Context
             nativeLanguage = Language.fromCode(preferences[NATIVE_LANG_KEY] ?: "ru"),
             learningLanguage = Language.fromCode(preferences[LEARNING_LANG_KEY] ?: "en"),
             theme = AppTheme.fromName(preferences[THEME_KEY] ?: "SYSTEM"),
-            notificationsEnabled = preferences[NOTIFICATIONS_KEY] ?: true
+            notificationsEnabled = preferences[NOTIFICATIONS_KEY] ?: true,
+            notificationHour = preferences[NOTIFICATION_HOUR_KEY] ?: 19,
+            notificationMinute = preferences[NOTIFICATION_MINUTE_KEY] ?: 0
         )
     }
 
@@ -42,10 +44,19 @@ class SettingsDataStore @Inject constructor(@ApplicationContext context: Context
         dataStore.edit { it[NOTIFICATIONS_KEY] = enabled }
     }
 
+    suspend fun updateNotificationTime(hour: Int, minute: Int) {
+        dataStore.edit { prefs ->
+            prefs[NOTIFICATION_HOUR_KEY] = hour
+            prefs[NOTIFICATION_MINUTE_KEY] = minute
+        }
+    }
+
     companion object {
         private val NATIVE_LANG_KEY = stringPreferencesKey("native_language")
         private val LEARNING_LANG_KEY = stringPreferencesKey("learning_language")
         private val THEME_KEY = stringPreferencesKey("theme")
         private val NOTIFICATIONS_KEY = booleanPreferencesKey("notifications_enabled")
+        private val NOTIFICATION_HOUR_KEY = intPreferencesKey("notification_hour")
+        private val NOTIFICATION_MINUTE_KEY = intPreferencesKey("notification_minute")
     }
 }

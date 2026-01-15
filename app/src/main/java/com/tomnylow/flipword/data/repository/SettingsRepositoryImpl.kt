@@ -28,4 +28,8 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateNotificationsEnabled(enabled: Boolean) =
         settingsDataStore.updateNotificationsEnabled(enabled)
 
+    override suspend fun updateNotificationsTime(hour: Int, minute: Int) {
+        settingsDataStore.updateNotificationTime(hour, minute)
+    }
+
 }

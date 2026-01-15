@@ -10,6 +10,7 @@ import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateAppThemeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateLearningLanguageUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNativeLanguageUseCase
+import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationTimeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationsEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -26,7 +27,8 @@ class ProfileViewModel @Inject constructor(
     private val updateNativeLanguageUseCase: UpdateNativeLanguageUseCase,
     private val updateLearningLanguageUseCase: UpdateLearningLanguageUseCase,
     private val updateThemeUseCase: UpdateAppThemeUseCase,
-    private val updateNotificationsEnabledUseCase: UpdateNotificationsEnabledUseCase
+    private val updateNotificationsEnabledUseCase: UpdateNotificationsEnabledUseCase,
+    private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase
 ) : ViewModel() {
 
     val state: StateFlow<SettingsState> = getSettingsUseCase()
@@ -58,6 +60,12 @@ class ProfileViewModel @Inject constructor(
     fun updateNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             updateNotificationsEnabledUseCase(enabled)
+        }
+    }
+
+    fun updateNotificationsTime(hour: Int, minute: Int){
+        viewModelScope.launch {
+            updateNotificationTimeUseCase(hour, minute)
         }
     }
 }

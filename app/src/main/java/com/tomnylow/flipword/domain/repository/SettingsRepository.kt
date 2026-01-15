@@ -15,4 +15,5 @@ interface SettingsRepository {
     suspend fun updateTheme(theme: AppTheme)
 
     suspend fun updateNotificationsEnabled(enabled: Boolean)
+    suspend fun updateNotificationsTime(hour: Int, minute: Int)
 }
