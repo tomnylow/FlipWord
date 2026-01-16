@@ -22,7 +22,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext context: Context
             nativeLanguage = Language.fromCode(preferences[NATIVE_LANG_KEY] ?: "ru"),
             learningLanguage = Language.fromCode(preferences[LEARNING_LANG_KEY] ?: "en"),
             theme = AppTheme.fromName(preferences[THEME_KEY] ?: "SYSTEM"),
-            notificationsEnabled = preferences[NOTIFICATIONS_KEY] ?: true,
+            notificationsEnabled = preferences[NOTIFICATIONS_KEY] ?: false,
             notificationHour = preferences[NOTIFICATION_HOUR_KEY] ?: 19,
             notificationMinute = preferences[NOTIFICATION_MINUTE_KEY] ?: 0
         )

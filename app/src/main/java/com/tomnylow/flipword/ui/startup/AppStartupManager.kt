@@ -14,7 +14,6 @@ class AppStartupManager @Inject constructor(
     fun startRepeatWorker(){
         scope.launch {
             startRepeatWorkerUseCase()
-
         }
     }
 }

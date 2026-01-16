@@ -52,11 +52,14 @@ class UserRepositoryImpl @Inject constructor(
             .setConstraints(constraints)
             .build()
         workManager.enqueueUniquePeriodicWork(
-            "RefreshDATA",
+            "RepeatWords",
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             request = request
         )
 
+    }
 
+    override fun stopRepeatWorker() {
+        workManager.cancelUniqueWork("RepeatWords")
     }
 }

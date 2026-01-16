@@ -4,10 +4,9 @@ data class Settings(
     val nativeLanguage: Language = Language.RUSSIAN,
     val learningLanguage: Language = Language.ENGLISH,
     val theme: AppTheme = AppTheme.SYSTEM,
-    val notificationsEnabled: Boolean = true,
+    val notificationsEnabled: Boolean = false,
     val notificationHour: Int = 19,
     val notificationMinute: Int = 0
-
 )
 
 enum class AppTheme(val displayName: String) {

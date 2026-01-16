@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
@@ -46,21 +47,18 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
-import com.tomnylow.flipword.notifications.NotificationsHelper
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
-    val notificationsHelper = NotificationsHelper(LocalContext.current)
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            viewModel.updateNotificationsEnabled(true)
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = {enabled ->
+            viewModel.updateNotificationsEnabled(enabled)
         }
-    }
+    )
 
     Scaffold { paddingValues ->
 
@@ -92,81 +90,78 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
 
                 Text(text = "Аккаунт", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
             }
 
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Settings section
             Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Настройки", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(16.dp))
+                LazyColumn(modifier = Modifier.padding(16.dp)) {
+                    item {
+                        Text(text = "Настройки", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-                    DropdownSettingItem(
-                        title = "Родной язык",
-                        value = state.settings.nativeLanguage.displayName,
-                        items = Language.entries,
-                        itemToString = { it.displayName },
-                        onItemSelected = { viewModel.updateNativeLanguage(it) }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DropdownSettingItem(
-                        title = "Изучаемый язык",
-                        value = state.settings.learningLanguage.displayName,
-                        items = Language.entries,
-                        itemToString = { it.displayName },
-                        onItemSelected = { viewModel.updateLearningLanguage(it) }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DropdownSettingItem(
-                        title = "Тема приложения",
-                        value = state.settings.theme.displayName,
-                        items = AppTheme.entries,
-                        itemToString = { it.displayName },
-                        onItemSelected = { viewModel.updateTheme(it) }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SwitchSettingItem(
-                        title = "Уведомления",
-                        checked = state.settings.notificationsEnabled,
-                        onCheckedChange = { checked ->
-                            if (checked) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    when {
-                                        ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.POST_NOTIFICATIONS
-                                        ) == PackageManager.PERMISSION_GRANTED -> {
-                                            viewModel.updateNotificationsEnabled(true)
-                                        }
-
-                                        else -> {
-                                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                        }
-                                    }
-                                } else {
-                                    viewModel.updateNotificationsEnabled(true)
-                                }
-                            } else {
-                                viewModel.updateNotificationsEnabled(false)
-                            }
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (state.settings.notificationsEnabled) {
-                        TimeSettingItem(
-                            title = "Время напоминания",
-                            hour = state.settings.notificationHour,
-                            minute = state.settings.notificationMinute,
-                            onClick = { showTimePicker = true }
+                    item {
+                        DropdownSettingItem(
+                            title = "Родной язык",
+                            value = state.settings.nativeLanguage.displayName,
+                            items = Language.entries,
+                            itemToString = { it.displayName },
+                            onItemSelected = { viewModel.updateNativeLanguage(it) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        DropdownSettingItem(
+                            title = "Изучаемый язык",
+                            value = state.settings.learningLanguage.displayName,
+                            items = Language.entries,
+                            itemToString = { it.displayName },
+                            onItemSelected = { viewModel.updateLearningLanguage(it) }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        DropdownSettingItem(
+                            title = "Тема приложения",
+                            value = state.settings.theme.displayName,
+                            items = AppTheme.entries,
+                            itemToString = { it.displayName },
+                            onItemSelected = { viewModel.updateTheme(it) }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        SwitchSettingItem(
+                            title = "Уведомления",
+                            checked = state.settings.notificationsEnabled,
+                            onCheckedChange = { checked ->
+                                if (checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    viewModel.updateNotificationsEnabled(checked)
+                                }
+
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    if (state.settings.notificationsEnabled) {
+                        item {
+                            TimeSettingItem(
+                                title = "Время напоминания",
+                                hour = state.settings.notificationHour,
+                                minute = state.settings.notificationMinute,
+                                onClick = { showTimePicker = true }
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }

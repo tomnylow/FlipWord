@@ -12,6 +12,7 @@ interface UserRepository {
     suspend fun incrementDailyStreak()
     suspend fun resetDailyStreak()
     fun startRepeatWorker(targetHour: Int, targetMinute: Int)
+    fun stopRepeatWorker()
 }
 
 

@@ -11,6 +11,7 @@ class StartRepeatWorkerUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         val settings = settingsRepository.settingsFlow.first()
-        userRepository.startRepeatWorker(settings.notificationHour, settings.notificationMinute)
+        if (settings.notificationsEnabled)
+            userRepository.startRepeatWorker(settings.notificationHour, settings.notificationMinute)
     }
 }
