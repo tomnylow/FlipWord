@@ -9,7 +9,7 @@ import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.usecase.card.GetAllDueCardsUseCase
 import com.tomnylow.flipword.domain.usecase.card.GetDueCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetAllDecksUseCase
-import com.tomnylow.flipword.domain.usecase.user.GetDailyStreakUseCase
+import com.tomnylow.flipword.domain.usecase.stats.GetDailyStreakUseCase
 import com.tomnylow.flipword.domain.usecase.word.GetWordOfTheDayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

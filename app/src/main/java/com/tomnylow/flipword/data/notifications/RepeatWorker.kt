@@ -1,4 +1,4 @@
-package com.tomnylow.flipword.notifications
+package com.tomnylow.flipword.data.notifications
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker

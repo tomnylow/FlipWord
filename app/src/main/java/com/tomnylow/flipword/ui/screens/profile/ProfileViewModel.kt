@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.model.Settings
-import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateAppThemeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateLearningLanguageUseCase
@@ -71,5 +70,5 @@ class ProfileViewModel @Inject constructor(
 }
 data class SettingsState(
     val settings: Settings = Settings(),
-    val user: User? = null
+
 )

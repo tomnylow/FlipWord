@@ -1,6 +1,6 @@
 package com.tomnylow.flipword.ui.startup
 
-import com.tomnylow.flipword.domain.usecase.user.StartRepeatWorkerUseCase
+import com.tomnylow.flipword.domain.usecase.notifications.StartRepeatWorkerUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
