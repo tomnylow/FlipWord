@@ -14,6 +14,8 @@ import com.tomnylow.flipword.domain.usecase.external.GetTranslationUseCase
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -102,46 +104,34 @@ class DeckDetailViewModel @Inject constructor(
         autoFillJob = viewModelScope.launch {
             _state.update { it.copy(isAutoFilling = true) }
 
-            var translation: String? = null
-            var definition: String? = null
-            var example: String? = null
 
-            var translationSuccess = false
-            var dictionarySuccess = false
+            val translationDeferred = async { getTranslationUseCase(word, learningLanguage.code, nativeLanguage.code) }
+            val dictionaryDeferred = async { getDictionaryDataUseCase(word, learningLanguage) }
 
-            translation = withTimeoutOrNull(8000L) {
-                getTranslationUseCase(word, learningLanguage.code, nativeLanguage.code)
-            }?.also { translationSuccess = true }
-
-            withTimeoutOrNull(8000L) {
-                getDictionaryDataUseCase(word, learningLanguage)
-            }?.let {
-                definition = it.definition
-                example = it.example
-                dictionarySuccess = true
-            }
+            val translation = translationDeferred.await()
+            val dictionaryData = dictionaryDeferred.await()
 
             _state.update { state ->
                 state.copy(
                     newCard = state.newCard.copy(
                         translation = translation ?: state.newCard.translation,
-                        definition = definition ?: state.newCard.definition,
-                        example = example ?: state.newCard.example
+                        definition = dictionaryData?.definition ?: state.newCard.definition,
+                        example = dictionaryData?.example ?: state.newCard.example
                     ),
                     isAutoFilling = false
                 )
             }
 
             when {
-                !translationSuccess && !dictionarySuccess -> {
+                translation == null && dictionaryData == null -> {
                     _snackbarMessage.emit("Не удалось получить данные: проверьте подключение")
                 }
 
-                !translationSuccess -> {
+                translation == null -> {
                     _snackbarMessage.emit("Не удалось получить перевод")
                 }
 
-                !dictionarySuccess -> {
+                dictionaryData == null -> {
                     _snackbarMessage.emit("Не удалось получить определение или пример")
                 }
             }
