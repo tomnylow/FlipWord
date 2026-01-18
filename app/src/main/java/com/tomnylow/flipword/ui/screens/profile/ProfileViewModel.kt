@@ -12,6 +12,7 @@ import com.tomnylow.flipword.domain.usecase.settings.UpdateLearningLanguageUseCa
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNativeLanguageUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationTimeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationsEnabledUseCase
+import com.tomnylow.flipword.domain.usecase.user.UpdateNotificationScheduleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +29,8 @@ class ProfileViewModel @Inject constructor(
     private val updateLearningLanguageUseCase: UpdateLearningLanguageUseCase,
     private val updateThemeUseCase: UpdateAppThemeUseCase,
     private val updateNotificationsEnabledUseCase: UpdateNotificationsEnabledUseCase,
-    private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase
+    private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase,
+    private val updateNotificationScheduleUseCase: UpdateNotificationScheduleUseCase
 ) : ViewModel() {
 
     val state: StateFlow<SettingsState> = getSettingsUseCase()
@@ -60,15 +62,26 @@ class ProfileViewModel @Inject constructor(
     fun updateNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             updateNotificationsEnabledUseCase(enabled)
+            updateNotificationScheduleUseCase(
+                enabled,
+                state.value.settings.notificationHour,
+                state.value.settings.notificationMinute
+            )
         }
     }
 
-    fun updateNotificationsTime(hour: Int, minute: Int){
+    fun updateNotificationsTime(hour: Int, minute: Int) {
         viewModelScope.launch {
             updateNotificationTimeUseCase(hour, minute)
+            updateNotificationScheduleUseCase(
+                state.value.settings.notificationsEnabled,
+                hour,
+                minute
+            )
         }
     }
 }
+
 data class SettingsState(
     val settings: Settings = Settings(),
     val user: User? = null

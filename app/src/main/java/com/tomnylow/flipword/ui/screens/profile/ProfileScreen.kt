@@ -3,8 +3,12 @@
 package com.tomnylow.flipword.ui.screens.profile
 
 import android.Manifest
-import android.content.pm.PackageManager
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -17,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,22 +46,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
+import androidx.core.net.toUri
+
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val permissionLauncher = rememberLauncherForActivityResult(
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = {enabled ->
+        onResult = { enabled ->
             viewModel.updateNotificationsEnabled(enabled)
         }
     )
+
+    val exactAlarmPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+
+        viewModel.updateNotificationsEnabled(true)
+    }
 
     Scaffold { paddingValues ->
 
@@ -141,10 +152,14 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                             title = "Уведомления",
                             checked = state.settings.notificationsEnabled,
                             onCheckedChange = { checked ->
-                                if (checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                if (!checked) {
+                                    viewModel.updateNotificationsEnabled(false)
                                 } else {
-                                    viewModel.updateNotificationsEnabled(checked)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        viewModel.updateNotificationsEnabled(true)
+                                    }
                                 }
 
                             }
@@ -153,6 +168,28 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                     }
 
                     if (state.settings.notificationsEnabled) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            item {
+                                TextButton(
+                                    onClick = {
+                                        val alarmManager =
+                                            context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                                        if (alarmManager.canScheduleExactAlarms()) {
+                                            viewModel.updateNotificationsEnabled(true)
+                                        } else {
+                                            val intent = Intent().apply {
+                                                action =
+                                                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                                                data = "package:${context.packageName}".toUri()
+                                            }
+                                            exactAlarmPermissionLauncher.launch(intent)
+                                        }
+                                    },
+                                    content = { Text("Установить точное время") })
+
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
                         item {
                             TimeSettingItem(
                                 title = "Время напоминания",

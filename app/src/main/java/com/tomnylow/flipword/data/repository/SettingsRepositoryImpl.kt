@@ -17,6 +17,7 @@ class SettingsRepositoryImpl @Inject constructor(
         settingsDataStore.updateNativeLanguage(language)
 
 
+
     override suspend fun updateLearningLanguage(language: Language) =
         settingsDataStore.updateLearningLanguage(language)
 

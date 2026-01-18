@@ -9,4 +9,5 @@ internal object SettingsKeys {
     val NOTIFICATIONS_KEY = booleanPreferencesKey("notifications_enabled")
     val NOTIFICATION_HOUR_KEY = intPreferencesKey("notification_hour")
     val NOTIFICATION_MINUTE_KEY = intPreferencesKey("notification_minute")
+
 }
