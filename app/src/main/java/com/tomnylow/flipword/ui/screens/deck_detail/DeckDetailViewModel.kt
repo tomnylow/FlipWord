@@ -37,7 +37,7 @@ class DeckDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val deckId: Long = savedStateHandle.get<Long>("deckId")!!
+    private val deckId: Long = savedStateHandle.get<Long>("deckId") ?: throw IllegalArgumentException("deckId is required for DeckDetailViewModel")
 
     private val _state = MutableStateFlow(DeckDetailState())
     val state = _state.asStateFlow()

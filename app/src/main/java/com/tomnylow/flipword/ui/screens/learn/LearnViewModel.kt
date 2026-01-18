@@ -18,7 +18,7 @@ class LearnViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val deckId: Long = savedStateHandle.get<Long>("deckId")!!
+    private val deckId = savedStateHandle.get<Long>("deckId") ?: throw IllegalArgumentException("deckId is required for LearnViewModel")
 
     private val _cards = MutableStateFlow<List<Card>>(emptyList())
     val cards = _cards.asStateFlow()
