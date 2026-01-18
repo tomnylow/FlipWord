@@ -1,6 +1,6 @@
 package com.tomnylow.flipword.data.repository
 
-import com.tomnylow.flipword.data.local.SettingsDataStore
+import com.tomnylow.flipword.data.local.settings.SettingsDataStore
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.model.Settings
