@@ -15,7 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.compose.FlipWordTheme
 import com.tomnylow.flipword.ui.navigation.BottomNavItem
 import com.tomnylow.flipword.ui.navigation.NavigationGraph
-import com.tomnylow.flipword.ui.screens.auth.AuthScreen
+
 
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -41,36 +41,36 @@ class MainActivity : ComponentActivity() {
                 )
 
                 val showBottomBar = mainScreens.any { it.route == currentDestination?.route }
-                AuthScreen()
-//                Scaffold(
-//                    bottomBar = {
-//                        if (showBottomBar) {
-//                            NavigationBar {
-//                                mainScreens.forEach { item ->
-//                                    NavigationBarItem(
-//                                        icon = { Icon(item.icon, contentDescription = item.title) },
-//                                        label = { Text(item.title) },
-//                                        selected = currentDestination?.route == item.route,
-//                                        onClick = {
-//                                            navController.navigate(item.route) {
-//                                                popUpTo(navController.graph.findStartDestination().id) {
-//                                                    saveState = true
-//                                                }
-//                                                launchSingleTop = true
-//                                                restoreState = true
-//                                            }
-//                                        }
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                ) {
-//                    NavigationGraph(
-//                        navController = navController,
-//                        modifier = Modifier.padding()
-//                    )
-//                }
+
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomBar) {
+                            NavigationBar {
+                                mainScreens.forEach { item ->
+                                    NavigationBarItem(
+                                        icon = { Icon(item.icon, contentDescription = item.title) },
+                                        label = { Text(item.title) },
+                                        selected = currentDestination?.route == item.route,
+                                        onClick = {
+                                            navController.navigate(item.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    NavigationGraph(
+                        navController = navController,
+                        modifier = Modifier.padding()
+                    )
+                }
             }
         }
     }
