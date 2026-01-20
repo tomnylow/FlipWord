@@ -1,18 +1,24 @@
 package com.tomnylow.flipword.ui.screens.auth
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
 import com.tomnylow.flipword.domain.usecase.user.SendPasswordResetUseCase
 import com.tomnylow.flipword.domain.usecase.user.SignInUseCase
 import com.tomnylow.flipword.domain.usecase.user.SignUpUseCase
+import com.tomnylow.flipword.ui.screens.profile.SettingsState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +38,11 @@ class AuthViewModel @Inject constructor(
     val message: SharedFlow<String> = _message.asSharedFlow()
 
     val currentUser = getUserUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
     fun toggleMode() {
         _state.update {
@@ -110,7 +121,7 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     private fun processAuthException(error: Throwable): String? {

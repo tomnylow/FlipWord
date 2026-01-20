@@ -1,12 +1,16 @@
 package com.tomnylow.flipword.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.repository.AuthRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,35 +20,51 @@ class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) : AuthRepository {
 
-    private val _currentUser = MutableStateFlow<User?>(null)
-    override val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
-
-    init {
-        firebaseAuth.addAuthStateListener { auth ->
-            _currentUser.value = auth.currentUser?.let { user ->
+    override val currentUser: Flow<User?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+            val user = auth.currentUser?.let { firebaseUser ->
                 User(
-                    id = user.uid,
-                    email = user.email ?: "",
-                    displayName = user.displayName ?: ""
+                    id = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    displayName = firebaseUser.displayName ?: ""
                 )
             }
+            trySend(user)
+        }
+
+        firebaseAuth.addAuthStateListener(authStateListener)
+
+        awaitClose {
+            firebaseAuth.removeAuthStateListener(authStateListener)
         }
     }
 
-    override suspend fun signIn(email: String, password: String): Result<Unit> = try {
-        firebaseAuth.signInWithEmailAndPassword(email, password).await()
-        Result.success(Unit)
+    override suspend fun signIn(email: String, password: String): Result<User> = try {
+        val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+        val firebaseUser = authResult.user ?: throw IllegalStateException("Firebase user is null")
+        val user = mapFirebaseUser(firebaseUser)
+        Result.success(user)
     } catch (e: Exception) {
         Result.failure(e)
     }
 
-    override suspend fun signUp(name: String, email: String, password: String): Result<Unit> = try {
-        val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+    override suspend fun signUp(name: String, email: String, password: String): Result<User> = try {
+        val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+        val firebaseUser = authResult.user ?: throw IllegalStateException("Firebase user is null")
+
         val profileUpdate = UserProfileChangeRequest.Builder()
             .setDisplayName(name)
             .build()
-        result.user?.updateProfile(profileUpdate)?.await()
-        Result.success(Unit)
+
+        firebaseUser.updateProfile(profileUpdate).await()
+
+        val user = User(
+            id = firebaseUser.uid,
+            email = firebaseUser.email ?: "",
+            displayName = name
+        )
+
+        Result.success(user)
     } catch (e: Exception) {
         Result.failure(e)
     }
@@ -61,5 +81,13 @@ class AuthRepositoryImpl @Inject constructor(
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)
+    }
+
+    private fun mapFirebaseUser(firebaseUser: FirebaseUser): User {
+        return User(
+            id = firebaseUser.uid,
+            email = firebaseUser.email ?: "",
+            displayName = firebaseUser.displayName ?: ""
+        )
     }
 }

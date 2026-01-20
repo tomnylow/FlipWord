@@ -7,6 +7,7 @@ import com.tomnylow.flipword.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -18,12 +19,7 @@ class SessionRepositoryImpl @Inject constructor(
     private val sessionDataStore: SessionDataStore
 ) : SessionRepository {
 
-    override val session: StateFlow<Session> = sessionDataStore.sessionFlow
-        .stateIn(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Session()
-        )
+    override val session: Flow<Session> = sessionDataStore.sessionFlow
 
     override suspend fun saveUser(user: User) =
         sessionDataStore.saveUser(user)

@@ -1,5 +1,6 @@
 package com.tomnylow.flipword.di
 
+import com.google.firebase.auth.FirebaseAuth
 import com.tomnylow.flipword.data.remote.DictionaryApi
 import com.tomnylow.flipword.data.remote.TranslationApi
 import dagger.Module
@@ -61,5 +62,11 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(TranslationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
     }
 }

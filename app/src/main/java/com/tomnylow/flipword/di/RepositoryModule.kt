@@ -1,6 +1,6 @@
 package com.tomnylow.flipword.di
 
-import com.tomnylow.flipword.data.repository.AuthRepositoryTest
+import com.tomnylow.flipword.data.repository.AuthRepositoryImpl
 import com.tomnylow.flipword.data.repository.CardRepositoryImpl
 import com.tomnylow.flipword.data.repository.DeckRepositoryImpl
 import com.tomnylow.flipword.data.repository.ExternalWordRepositoryImpl
@@ -26,7 +26,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        authRepositoryTest: AuthRepositoryTest
+        authRepositoryTest: AuthRepositoryImpl
     ): AuthRepository
 
     @Binds

@@ -6,6 +6,7 @@ import com.tomnylow.flipword.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -16,18 +17,13 @@ class GetUserUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val sessionRepository: SessionRepository
 ) {
-    operator fun invoke(): StateFlow<User?> {
+    operator fun invoke(): Flow<User?> {
         return combine(
-            authRepository.currentUser,      // из Firebase (может быть null)
-            sessionRepository.session        // всегда содержит локального пользователя, если был
+            authRepository.currentUser,
+            sessionRepository.session
         ) { firebaseUser, localSession ->
-            // Приоритет: живой пользователь из Firebase > локальная копия
             firebaseUser ?: localSession.user
-        }.stateIn(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
+        }
     }
 
 }
