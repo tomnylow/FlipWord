@@ -22,7 +22,7 @@ class AuthViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase,
     private val sendPasswordResetEmailUseCase: SendPasswordResetUseCase,
-    getUserUseCase: GetUserUseCase
+    private val getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthUiState())

@@ -10,7 +10,6 @@ import javax.inject.Inject
 
 class AuthRepositoryTest @Inject constructor(): AuthRepository {
 
-
         private val _currentUser = MutableStateFlow<User?>(null)
         override val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
