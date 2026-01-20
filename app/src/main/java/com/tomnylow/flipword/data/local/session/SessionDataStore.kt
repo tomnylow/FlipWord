@@ -1,6 +1,7 @@
 package com.tomnylow.flipword.data.local.session
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "session")
 @Singleton
 class SessionDataStore @Inject constructor(
     @ApplicationContext context: Context
@@ -32,6 +33,7 @@ class SessionDataStore @Inject constructor(
         .map { preferences -> mapPreferencesToSession(preferences) }
 
     suspend fun saveUser(user: User) {
+        Log.d("Session", "Saving $user")
         dataStore.edit { prefs ->
             prefs[SessionPreferencesKeys.USER_ID] = user.id
             prefs[SessionPreferencesKeys.USER_EMAIL] = user.email
