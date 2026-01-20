@@ -4,11 +4,13 @@ import com.tomnylow.flipword.data.repository.AuthRepositoryTest
 import com.tomnylow.flipword.data.repository.CardRepositoryImpl
 import com.tomnylow.flipword.data.repository.DeckRepositoryImpl
 import com.tomnylow.flipword.data.repository.ExternalWordRepositoryImpl
+import com.tomnylow.flipword.data.repository.SessionRepositoryImpl
 import com.tomnylow.flipword.data.repository.SettingsRepositoryImpl
 import com.tomnylow.flipword.domain.repository.AuthRepository
 import com.tomnylow.flipword.domain.repository.CardRepository
 import com.tomnylow.flipword.domain.repository.DeckRepository
 import com.tomnylow.flipword.domain.repository.ExternalWordRepository
+import com.tomnylow.flipword.domain.repository.SessionRepository
 import com.tomnylow.flipword.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
@@ -51,4 +53,10 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         settingsRepositoryImpl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSessionRepository(
+        sessionRepositoryImpl: SessionRepositoryImpl
+    ): SessionRepository
 }
