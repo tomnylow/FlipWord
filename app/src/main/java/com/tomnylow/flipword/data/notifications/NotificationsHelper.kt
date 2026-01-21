@@ -19,7 +19,7 @@ import javax.inject.Inject
 class NotificationsHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val notifcationsManager = context.getSystemService<NotificationManager>()
+    private val notificationsManager = context.getSystemService<NotificationManager>()
 
     init {
         createNotificationChannel()
@@ -30,7 +30,7 @@ class NotificationsHelper @Inject constructor(
             REPEAT_CHANNEL_ID, "Повторение слов",
             NotificationManager.IMPORTANCE_DEFAULT
         )
-        notifcationsManager?.createNotificationChannel(channel)
+        notificationsManager?.createNotificationChannel(channel)
 
     }
 
@@ -47,7 +47,7 @@ class NotificationsHelper @Inject constructor(
             .setAutoCancel(true)
             .setContentText("Вас ждут ${dueCards.size} слов для повторения, возвращайтесь!")
             .build()
-        notifcationsManager?.notify(REPEAT_NOTIFICATION_ID, notification)
+        notificationsManager?.notify(REPEAT_NOTIFICATION_ID, notification)
     }
     companion object {
         const val REPEAT_CHANNEL_ID = "words_repeat_channel"

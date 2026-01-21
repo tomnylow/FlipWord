@@ -3,7 +3,12 @@
 package com.tomnylow.flipword.ui.screens.profile
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -52,13 +57,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
-import kotlinx.coroutines.delay
+import androidx.core.net.toUri
+
 
 @Composable
 fun ProfileScreen(
@@ -67,6 +74,13 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { enabled ->
+            viewModel.updateNotificationsEnabled(enabled)
+        }
+    )
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
 
@@ -76,6 +90,12 @@ fun ProfileScreen(
             viewModel.updateNotificationsEnabled(enabled)
         }
     )
+
+    val exactAlarmPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        viewModel.updateNotificationsEnabled(true)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collect { message ->
@@ -179,10 +199,14 @@ fun ProfileScreen(
                             title = "Уведомления",
                             checked = state.settings.notificationsEnabled,
                             onCheckedChange = { checked ->
-                                if (checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                if (!checked) {
+                                    viewModel.updateNotificationsEnabled(false)
                                 } else {
-                                    viewModel.updateNotificationsEnabled(checked)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        viewModel.updateNotificationsEnabled(true)
+                                    }
                                 }
 
                             }
@@ -191,20 +215,42 @@ fun ProfileScreen(
                     }
 
                     if (state.settings.notificationsEnabled) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-                        TimeSettingItem(
-                            title = "Время напоминания",
-                            hour = state.settings.notificationHour,
-                            minute = state.settings.notificationMinute,
-                            onClick = { showTimePicker = true }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                            TextButton(
+                                onClick = {
+                                    val alarmManager =
+                                        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                                    if (alarmManager.canScheduleExactAlarms()) {
+                                        viewModel.updateNotificationsEnabled(true)
+                                    } else {
+                                        val intent = Intent().apply {
+                                            action =
+                                                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                                            data = "package:${context.packageName}".toUri()
+                                        }
+                                        exactAlarmPermissionLauncher.launch(intent)
+                                    }
+                                },
+                                content = { Text("Установить точное время", style = MaterialTheme.typography.bodyMedium ) })
 
-
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
+
+                    TimeSettingItem(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        title = "Время напоминания",
+                        hour = state.settings.notificationHour,
+                        minute = state.settings.notificationMinute,
+                        onClick = { showTimePicker = true }
+                    )
+                    Spacer(modifier = Modifier.height(80.dp))
+
                 }
             }
-        })
+        }
+    )
 }
 
 @Composable
