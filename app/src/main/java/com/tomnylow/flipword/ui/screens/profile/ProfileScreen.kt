@@ -3,7 +3,6 @@
 package com.tomnylow.flipword.ui.screens.profile
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
@@ -32,6 +33,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -40,6 +43,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,22 +52,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
+import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
-    onLoginClick: () -> Unit,
-    onSignOutClick: () -> Unit
+    onLoginClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -72,52 +77,73 @@ fun ProfileScreen(
         }
     )
 
-    Scaffold { paddingValues ->
-
-        if (showTimePicker) {
-            TimePickerDialog(
-                onDismiss = { showTimePicker = false },
-                onConfirm = { hour, minute ->
-                    viewModel.updateNotificationsTime(hour, minute)
-                    showTimePicker = false
-                },
-                initialHour = state.settings.notificationHour,
-                initialMinute = state.settings.notificationMinute
-            )
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
         }
+    }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Профиль",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 80.dp) // TODO : Решить проблему с вложенным scaffold
             )
+        },
+        content = { paddingValues ->
 
-            AccountInfoCard(
-                email = state.userEmail,
-                name = state.username,
-                onSignOutClick = onSignOutClick,
-                onLoginClick = onLoginClick,
+            if (showTimePicker) {
+                TimePickerDialog(
+                    onDismiss = { showTimePicker = false },
+                    onConfirm = { hour, minute ->
+                        viewModel.updateNotificationsTime(hour, minute)
+                        showTimePicker = false
+                    },
+                    initialHour = state.settings.notificationHour,
+                    initialMinute = state.settings.notificationMinute
+                )
+            }
 
-                onPushClick = {},
-                onFetchClich = {  },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(paddingValues)
+                    .padding(16.dp)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            ) {
+                Text(
+                    text = "Профиль",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-            Card(modifier = Modifier.fillMaxWidth()) {
-                LazyColumn(modifier = Modifier.padding(16.dp)) {
-                    item {
-                        Text(text = "Настройки", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                AccountInfoCard(
+                    email = state.userEmail,
+                    name = state.username,
+                    onSignOutClick = {
+                        // TODO
+                    },
+                    onLoginClick = onLoginClick,
+
+                    onPushClick = viewModel::pushDataBackup,
+                    onFetchClick = viewModel::fetchDataBackup,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+
+                        Text(
+                            text = "Настройки",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-                    item {
+
+
                         DropdownSettingItem(
                             title = "Родной язык",
                             value = state.settings.nativeLanguage.displayName,
@@ -126,9 +152,9 @@ fun ProfileScreen(
                             onItemSelected = { viewModel.updateNativeLanguage(it) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-                    item {
+
+
                         DropdownSettingItem(
                             title = "Изучаемый язык",
                             value = state.settings.learningLanguage.displayName,
@@ -137,9 +163,9 @@ fun ProfileScreen(
                             onItemSelected = { viewModel.updateLearningLanguage(it) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-                    item {
+
+
                         DropdownSettingItem(
                             title = "Тема приложения",
                             value = state.settings.theme.displayName,
@@ -148,9 +174,7 @@ fun ProfileScreen(
                             onItemSelected = { viewModel.updateTheme(it) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-                    item {
                         SwitchSettingItem(
                             title = "Уведомления",
                             checked = state.settings.notificationsEnabled,
@@ -167,20 +191,20 @@ fun ProfileScreen(
                     }
 
                     if (state.settings.notificationsEnabled) {
-                        item {
-                            TimeSettingItem(
-                                title = "Время напоминания",
-                                hour = state.settings.notificationHour,
-                                minute = state.settings.notificationMinute,
-                                onClick = { showTimePicker = true }
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
+
+                        TimeSettingItem(
+                            title = "Время напоминания",
+                            hour = state.settings.notificationHour,
+                            minute = state.settings.notificationMinute,
+                            onClick = { showTimePicker = true }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+
                     }
                 }
             }
-        }
-    }
+        })
 }
 
 @Composable
@@ -191,7 +215,7 @@ fun AccountInfoCard(
     onSignOutClick: () -> Unit,
     onLoginClick: () -> Unit,
     onPushClick: () -> Unit,
-    onFetchClich: () -> Unit
+    onFetchClick: () -> Unit
 ) {
 
     Card(modifier = modifier) {
@@ -233,7 +257,7 @@ fun AccountInfoCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = onSignOutClick,
+                    onClick = onFetchClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Загрузить из облака")
