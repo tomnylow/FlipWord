@@ -5,16 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.model.Settings
+import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateAppThemeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateLearningLanguageUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNativeLanguageUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationTimeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationsEnabledUseCase
+import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,16 +30,26 @@ class ProfileViewModel @Inject constructor(
     private val updateLearningLanguageUseCase: UpdateLearningLanguageUseCase,
     private val updateThemeUseCase: UpdateAppThemeUseCase,
     private val updateNotificationsEnabledUseCase: UpdateNotificationsEnabledUseCase,
-    private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase
+    private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase,
+    getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
-    val state: StateFlow<SettingsState> = getSettingsUseCase()
-        .map { settings -> SettingsState(settings = settings) }
+    val state: StateFlow<SettingsState> = combine(
+        getSettingsUseCase(),
+        getUserUseCase()
+    ) { settings, user ->
+        SettingsState(
+            settings = settings,
+            username = user?.displayName,
+            userEmail = user?.email
+        )
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = SettingsState()
         )
+
 
     fun updateNativeLanguage(language: Language) {
         viewModelScope.launch {
@@ -62,13 +75,15 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateNotificationsTime(hour: Int, minute: Int){
+    fun updateNotificationsTime(hour: Int, minute: Int) {
         viewModelScope.launch {
             updateNotificationTimeUseCase(hour, minute)
         }
     }
 }
+
 data class SettingsState(
     val settings: Settings = Settings(),
-
+    val username: String? = null,
+    val userEmail: String? = null
 )

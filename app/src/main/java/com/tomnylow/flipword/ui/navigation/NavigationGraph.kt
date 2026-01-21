@@ -33,7 +33,10 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
             })
         }
         composable(BottomNavItem.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onLoginClick = { navController.navigate(Screen.Auth.route)},
+                onSignOutClick = {}
+            )
         }
         composable(Screen.Auth.route) {
             AuthScreen(
