@@ -9,7 +9,7 @@ import com.tomnylow.flipword.data.local.model.DeckEntity
 
 @Database(
     entities = [ DeckEntity::class, CardEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
