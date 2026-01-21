@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.foundation)
     ksp(libs.androidx.hilt.compiler)
 
     implementation(platform(libs.firebase.bom))

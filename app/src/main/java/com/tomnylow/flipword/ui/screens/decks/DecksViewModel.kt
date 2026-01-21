@@ -2,9 +2,12 @@ package com.tomnylow.flipword.ui.screens.decks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
+import com.tomnylow.flipword.domain.usecase.deck.DeleteDeckUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetAllDecksUseCase
 import com.tomnylow.flipword.domain.usecase.deck.InsertDeckUseCase
+import com.tomnylow.flipword.domain.usecase.deck.UpdateDeckUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class DecksViewModel @Inject constructor(
     private val getAllDecksUseCase: GetAllDecksUseCase,
-    private val insertDeckUseCase: InsertDeckUseCase
+    private val insertDeckUseCase: InsertDeckUseCase,
+    private val updateDeckUseCase: UpdateDeckUseCase,
+    private val deleteDeckUseCase: DeleteDeckUseCase
 ) : ViewModel() {
 
     private val _decks = MutableStateFlow<List<Deck>>(emptyList())
@@ -37,6 +42,18 @@ class DecksViewModel @Inject constructor(
     fun insertDeck(deckName: String) {
         viewModelScope.launch {
             insertDeckUseCase(Deck(name = deckName))
+        }
+    }
+
+    fun updateDeck(id: Long, newName: String) {
+        viewModelScope.launch {
+           updateDeckUseCase(Deck(id, newName))
+        }
+    }
+
+    fun deleteDeck(deck: Deck) {
+        viewModelScope.launch {
+           deleteDeckUseCase(deck)
         }
     }
 }
