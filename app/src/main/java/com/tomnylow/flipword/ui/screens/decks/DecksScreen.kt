@@ -70,7 +70,7 @@ fun DecksScreen(
 @Composable
 private fun EmptyState() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Text("У вас пока нет колод. Создайте первую!")

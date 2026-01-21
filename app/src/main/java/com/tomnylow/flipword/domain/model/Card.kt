@@ -10,5 +10,6 @@ data class Card(
     val definition: String? = null,
     val usageExample: String? = null,
     val deckId: Long,
-    val sm2Params: SM2Params = SM2Params.INITIAL
+    val sm2Params: SM2Params = SM2Params.INITIAL,
+    val updatedAt: Long = System.currentTimeMillis(),
 )
