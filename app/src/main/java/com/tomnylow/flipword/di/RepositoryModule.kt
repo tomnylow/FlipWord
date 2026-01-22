@@ -3,6 +3,8 @@ package com.tomnylow.flipword.di
 import com.tomnylow.flipword.data.repository.CardRepositoryImpl
 import com.tomnylow.flipword.data.repository.DeckRepositoryImpl
 import com.tomnylow.flipword.data.repository.ExternalWordRepositoryImpl
+import com.tomnylow.flipword.data.repository.MockOnboardingRepository
+import com.tomnylow.flipword.data.repository.OnboardingRepository
 import com.tomnylow.flipword.data.repository.SettingsRepositoryImpl
 import com.tomnylow.flipword.data.repository.UserRepositoryImpl
 import com.tomnylow.flipword.domain.repository.CardRepository
@@ -49,4 +51,10 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         settingsRepositoryImpl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOnboardingRepository(
+        onboardingRepository: MockOnboardingRepository
+    ): OnboardingRepository
 }

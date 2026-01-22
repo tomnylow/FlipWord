@@ -13,24 +13,29 @@ import com.tomnylow.flipword.ui.screens.learn.LearnScreen
 import com.tomnylow.flipword.ui.screens.profile.ProfileScreen
 import com.tomnylow.flipword.ui.screens.repeat.RepeatScreen
 import com.tomnylow.flipword.ui.screens.decks.DecksScreen
+import com.tomnylow.flipword.ui.screens.onboarding.OnboardingScreen
 
 
 @Composable
-fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostController) {
+fun NavigationGraph(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    onboardingCompleted: Boolean
+) {
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = BottomNavItem.Home.route
+        startDestination = if (onboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
     ) {
-        composable(BottomNavItem.Home.route) {
+        composable(Screen.Home.route) {
             HomeScreen(onRepeatWordsClick = { navController.navigate(Screen.Repeat.createRoute(null)) })
         }
-        composable(BottomNavItem.Study.route) {
+        composable(Screen.Study.route) {
             DecksScreen(onDeckClick = {
                 navController.navigate(Screen.DeckDetail.createRoute(it))
             })
         }
-        composable(BottomNavItem.Profile.route) {
+        composable(Screen.Profile.route) {
             ProfileScreen()
         }
         composable(
@@ -63,6 +68,9 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
             })
         ) {
             RepeatScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable (Screen.Onboarding.route) {
+            OnboardingScreen(onOnboardingFinished = { navController.navigate(Screen.Home.route) })
         }
     }
 }

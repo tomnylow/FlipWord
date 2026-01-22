@@ -2,6 +2,7 @@ package com.tomnylow.flipword.ui.navigation
 
 
 sealed class Screen(val route: String) {
+    object Onboarding : Screen("onboarding")
     object Home : Screen("home")
     object Study : Screen("study")
     object Profile : Screen("profile")
