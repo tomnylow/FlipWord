@@ -70,7 +70,7 @@ fun NavigationGraph(
             RepeatScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable (Screen.Onboarding.route) {
-            OnboardingScreen(onOnboardingFinished = { navController.navigate(Screen.Home.route) })
+            OnboardingScreen(onSkipLoginClick = { navController.navigate(Screen.Home.route)}, onLoginClick = {})
         }
     }
 }
