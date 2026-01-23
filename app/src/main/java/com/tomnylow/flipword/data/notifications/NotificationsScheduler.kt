@@ -29,7 +29,7 @@ class NotificationScheduler @Inject constructor(
 
         val triggerTimeMillis = target.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        val intent = Intent(context, NotificationReceiver::class.java)
+        val intent = NotificationReceiver.newIntent(context, hour, minute)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             0,
