@@ -1,30 +1,30 @@
 package com.tomnylow.flipword.ui.screens.repeat
 
-
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
 import com.tomnylow.flipword.domain.sm2.SM2Algorithm
-import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
+import com.tomnylow.flipword.domain.usecase.card.GetAllDueCardsUseCase
+import com.tomnylow.flipword.domain.usecase.card.GetDueCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.card.UpdateCardUseCase
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-
-@HiltViewModel(assistedFactory = RepeatViewModel.Factory::class)
-class RepeatViewModel @AssistedInject constructor(
-    private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
+@HiltViewModel
+class RepeatViewModel @Inject constructor(
+    private val getAllDueCardsUseCase: GetAllDueCardsUseCase,
     private val updateCardUseCase: UpdateCardUseCase,
-   @Assisted("deckId") private val deckId: Long
+    private val getDueCardsForDeckUseCase: GetDueCardsForDeckUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val deckId: Long? = savedStateHandle.get<String>("deckId")?.toLongOrNull()
 
     private val _cardsToReview = MutableStateFlow<List<Card>>(emptyList())
 
@@ -39,8 +39,11 @@ class RepeatViewModel @AssistedInject constructor(
 
     private fun loadCardsToReview() {
         viewModelScope.launch {
-            val allCards = getCardsForDeckUseCase(deckId).first()
-            _cardsToReview.value = allCards.filter { SM2Algorithm.isTimeForReview(it.sm2Params) }
+            _cardsToReview.value = if (deckId == null) {
+                getAllDueCardsUseCase().first()
+            } else {
+                getDueCardsForDeckUseCase(deckId).first()
+            }
             _currentCard.value = _cardsToReview.value.getOrNull(currentIndex)
         }
     }
@@ -58,9 +61,5 @@ class RepeatViewModel @AssistedInject constructor(
     private fun moveToNextCard() {
         currentIndex++
         _currentCard.value = _cardsToReview.value.getOrNull(currentIndex)
-    }
-    @AssistedFactory
-    interface Factory {
-        fun create(@Assisted("deckId") deckId: Long): RepeatViewModel
     }
 }

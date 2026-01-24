@@ -1,8 +1,10 @@
 package com.tomnylow.flipword.ui.screens.repeat
 
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,9 +12,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Mood
+import androidx.compose.material.icons.filled.MoodBad
+import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
@@ -37,11 +45,7 @@ import com.tomnylow.flipword.domain.sm2.Rating
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepeatScreen(
-    deckId: Long,
-    viewModel: RepeatViewModel = hiltViewModel(creationCallback = {
-        factory: RepeatViewModel.Factory ->
-        factory.create(deckId)
-    }),
+    viewModel: RepeatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val currentCard by viewModel.currentCard.collectAsState()
@@ -58,49 +62,81 @@ fun RepeatScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (currentCard == null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Карточки для повторения закончились!")
-                }
-            } else {
-                RepeatCard(card = currentCard!!, onRatingSelected = viewModel::onRatingSelected)
+        if (currentCard == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Карточки для повторения закончились!")
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Карточка занимает большую часть, но не всю
+                FlippableCard(
+                    modifier = Modifier.weight(1f),
+                    frontContent = {
+                        Text(
+                            text = currentCard!!.word,
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    },
+                    backContent = {
+                        Text(
+                            text = currentCard!!.translation ?: "",
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
+                )
+                RatingButtons { viewModel.onRatingSelected(it) }
             }
         }
     }
 }
 
 @Composable
-fun RepeatCard(card: Card, onRatingSelected: (Rating) -> Unit) {
+fun FlippableCard(
+    modifier: Modifier = Modifier,
+    frontContent: @Composable () -> Unit,
+    backContent: @Composable () -> Unit
+) {
     var flipped by remember { mutableStateOf(false) }
 
+    val rotation by animateFloatAsState(
+        targetValue = if (flipped) 180f else 0f,
+        animationSpec = tween(600),
+        label = "card_rotation"
+    )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Card(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 64.dp)
-                .clickable{ flipped = !flipped }
-
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!flipped) {
-                    Text(text = card.word, style = MaterialTheme.typography.headlineLarge)
-                } else {
-                    Text(
-                        text = card.translation ?: "",
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 64.dp)
+            .graphicsLayer {
+                rotationY = rotation
+                cameraDistance = 12 * density
+            }
+            .clickable { flipped = !flipped }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (rotation < 90f) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    frontContent()
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { rotationY = 180f },
+                    contentAlignment = Alignment.Center
+                ) {
+                    backContent()
                 }
             }
         }
-
-        RatingButtons(onRatingSelected)
-
     }
 }
 
@@ -112,8 +148,39 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Button(onClick = { onRatingSelected(Rating.AGAIN) }) { Text("Не знаю") }
-        Button(onClick = { onRatingSelected(Rating.NORMAL) }) { Text("Нормально") }
-        Button(onClick = { onRatingSelected(Rating.PERFECT) }) { Text("Отлично") }
+
+        Icon(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable { onRatingSelected(Rating.AGAIN) },
+            imageVector = Icons.Default.MoodBad,
+            contentDescription = "Не знаю",
+            tint = MaterialTheme.colorScheme.onPrimary,
+        )
+
+        Icon(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable { onRatingSelected(Rating.NORMAL) },
+            imageVector = Icons.Default.SentimentNeutral,
+            contentDescription = "Нормально",
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
+
+        Icon(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable { onRatingSelected(Rating.PERFECT) },
+            imageVector = Icons.Default.Mood,
+            contentDescription = "Отлично",
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
+
     }
 }

@@ -12,7 +12,7 @@ import com.tomnylow.flipword.ui.screens.home.HomeScreen
 import com.tomnylow.flipword.ui.screens.learn.LearnScreen
 import com.tomnylow.flipword.ui.screens.profile.ProfileScreen
 import com.tomnylow.flipword.ui.screens.repeat.RepeatScreen
-import com.tomnylow.flipword.ui.screens.study.StudyScreen
+import com.tomnylow.flipword.ui.screens.decks.DecksScreen
 
 
 @Composable
@@ -23,10 +23,10 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
         startDestination = BottomNavItem.Home.route
     ) {
         composable(BottomNavItem.Home.route) {
-            HomeScreen()
+            HomeScreen(onRepeatWordsClick = { navController.navigate(Screen.Repeat.createRoute(null)) })
         }
         composable(BottomNavItem.Study.route) {
-            StudyScreen(onDeckClick = {
+            DecksScreen(onDeckClick = {
                 navController.navigate(Screen.DeckDetail.createRoute(it))
             })
         }
@@ -34,7 +34,8 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
             ProfileScreen()
         }
         composable(
-            Screen.DeckDetail.route
+            Screen.DeckDetail.route,
+            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
         ) {
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -43,23 +44,25 @@ fun NavigationGraph(modifier: Modifier = Modifier, navController: NavHostControl
                 },
                 onRepeatClick = { deckId ->
                     navController.navigate(Screen.Repeat.createRoute(deckId))
-                },
-                deckId = Screen.getDeckId(it.arguments)
+                }
             )
         }
         composable(
-            Screen.Learn.route
+            Screen.Learn.route,
+            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
         ) {
             LearnScreen(
-                onNavigateBack = { navController.popBackStack() },
-                deckId = Screen.getDeckId(it.arguments)
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(
-            Screen.Repeat.route
+            Screen.Repeat.route,
+            arguments = listOf(navArgument("deckId") {
+                type = NavType.StringType
+                nullable = true
+            })
         ) {
-            RepeatScreen(onNavigateBack = { navController.popBackStack() },
-                deckId = Screen.getDeckId(it.arguments))
+            RepeatScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

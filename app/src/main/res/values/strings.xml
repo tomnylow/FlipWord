@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FlipWord</string>
+    <string name="no_definition">No definition</string>
+    <string name="no_definitions_found">No definitions found</string>
 </resources>

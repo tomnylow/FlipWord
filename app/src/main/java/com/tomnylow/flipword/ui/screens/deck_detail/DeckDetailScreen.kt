@@ -14,35 +14,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
-    deckId: Long,
-    viewModel: DeckDetailViewModel = hiltViewModel(creationCallback = { factory: DeckDetailViewModel.Factory ->
-        factory.create(deckId)
-    }),
+    viewModel: DeckDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onLearnClick: (Long) -> Unit,
     onRepeatClick: (Long) -> Unit
 ) {
-    val deck by viewModel.deck.collectAsState()
-    val cards by viewModel.cards.collectAsState()
-    val newCardState by viewModel.newCardState.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(deck?.name ?: "Загрузка...") },
+                title = { Text(state.deck?.name ?: "Загрузка...") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
                 actions = {
-                    deck?.id?.let { id ->
+                    state.deck?.id?.let { id ->
                         TextButton(onClick = { onLearnClick(id) }) {
                             Text("Учить")
                         }
@@ -57,25 +61,35 @@ fun DeckDetailScreen(
             FloatingActionButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Добавить карточку")
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            if (cards.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (state.cards.isEmpty()) {
                 EmptyState()
             } else {
-                CardsList(cards = cards)
+                CardsList(cards = state.cards)
             }
         }
     }
 
     if (showDialog) {
         NewCardDialog(
-            state = newCardState,
+            state = state.newCard,
+            isAutoFilling = state.isAutoFilling,
             onWordChange = viewModel::onWordChange,
             onTranslationChange = viewModel::onTranslationChange,
             onDefinitionChange = viewModel::onDefinitionChange,
             onExampleChange = viewModel::onExampleChange,
-            onAutoFill = viewModel::autoFillCard,
+            onAutoFill = {learning, native -> viewModel.autoFillCard(learning, native)},
             onDismiss = {
                 viewModel.clearNewCardState()
                 showDialog = false
@@ -147,11 +161,12 @@ fun CardItem(card: Card) {
 @Composable
 private fun NewCardDialog(
     state: NewCardState,
+    isAutoFilling: Boolean,
     onWordChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onDefinitionChange: (String) -> Unit,
     onExampleChange: (String) -> Unit,
-    onAutoFill: () -> Unit,
+    onAutoFill: (Language, Language) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -163,18 +178,18 @@ private fun NewCardDialog(
                 OutlinedTextField(
                     value = state.word,
                     onValueChange = onWordChange,
-                    label = { Text("Слово") },
+                    label = { Text("Слово (${state.learningLanguage.displayName})") },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         if (state.word.isNotBlank()) {
                             IconButton(
-                                onClick = onAutoFill,
-                                enabled = !state.isAutoFilling
+                                onClick = { onAutoFill(state.learningLanguage, state.nativeLanguage) },
+                                enabled = !isAutoFilling
                             ) {
-                                if (state.isAutoFilling) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                if (isAutoFilling) {
+                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                                 } else {
-                                    Icon(imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
+                                    Icon(modifier = Modifier.size(16.dp), imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
                                 }
                             }
                         }
@@ -183,7 +198,7 @@ private fun NewCardDialog(
                 OutlinedTextField(
                     value = state.translation,
                     onValueChange = onTranslationChange,
-                    label = { Text("Перевод") },
+                    label = { Text("Перевод (${state.nativeLanguage.displayName})") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
@@ -205,7 +220,7 @@ private fun NewCardDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                enabled = state.word.isNotBlank() && state.translation.isNotBlank() && !state.isAutoFilling
+                enabled = state.word.isNotBlank() && state.translation.isNotBlank() && !isAutoFilling
             ) {
                 Text("Создать")
             }

@@ -2,6 +2,7 @@ package com.tomnylow.flipword.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.work.WorkManager
 import com.tomnylow.flipword.data.local.CardDao
 import com.tomnylow.flipword.data.local.DeckDao
 import com.tomnylow.flipword.data.local.FlipWordDatabase
@@ -15,6 +16,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideRepeatWorkManager(
+        @ApplicationContext context: Context
+    ): WorkManager {
+        return WorkManager.getInstance(context)
+    }
 
     @Provides
     @Singleton

@@ -1,6 +1,5 @@
 package com.tomnylow.flipword.ui.navigation
 
-import android.os.Bundle
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -16,12 +15,9 @@ sealed class Screen(val route: String) {
         fun createRoute(deckId: Long) = "learn/$deckId"
     }
 
-    object Repeat : Screen("repeat/{deckId}") {
-        fun createRoute(deckId: Long) = "repeat/$deckId"
+    object Repeat : Screen("repeat?deckId={deckId}") {
+        fun createRoute(deckId: Long?) = if (deckId != null) "repeat?deckId=$deckId" else "repeat"
     }
-    companion object{
-        fun getDeckId(args: Bundle?): Long {
-            return args?.getString("deckId")?.toLongOrNull() ?: 0L
-        }
-    }
+
+
 }
