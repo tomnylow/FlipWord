@@ -55,31 +55,31 @@ class BackupRepository @Inject constructor(
             val userId =
                 auth.currentUser?.uid ?: throw IllegalStateException("User not authenticated")
             withTimeout(15000L) {
-            val snapshot = firestore.collection(COLLECTION_USERS).document(userId)
-                .collection(COLLECTION_BACKUPS).document(DOCUMENT_LATEST)
-                .get()
-                .await()
+                val snapshot = firestore.collection(COLLECTION_USERS).document(userId)
+                    .collection(COLLECTION_BACKUPS).document(DOCUMENT_LATEST)
+                    .get()
+                    .await()
 
-            if (!snapshot.exists()) throw Exception("Backup not found")
+                if (!snapshot.exists()) throw Exception("Backup not found")
 
-            val jsonString = snapshot.getString(FIELD_DATA)
-                ?: throw Exception("Backup data is empty")
+                val jsonString = snapshot.getString(FIELD_DATA)
+                    ?: throw Exception("Backup data is empty")
 
-            val backupData = json.decodeFromString<BackupEntity>(jsonString)
+                val backupData = json.decodeFromString<BackupEntity>(jsonString)
 
-            database.withTransaction {
+                database.withTransaction {
+                    deckDao.deleteAllDecks()
 
-                deckDao.deleteAllDecks()
-
-                deckDao.insertDecks(backupData.decks)
-                cardDao.insertCards(backupData.cards)
-            }
+                    deckDao.insertDecks(backupData.decks)
+                    cardDao.insertCards(backupData.cards)
+                }
             }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
     private companion object {
         const val COLLECTION_USERS = "users"
         const val COLLECTION_BACKUPS = "backups"

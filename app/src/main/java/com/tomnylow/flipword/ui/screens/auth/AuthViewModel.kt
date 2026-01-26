@@ -3,6 +3,11 @@ package com.tomnylow.flipword.ui.screens.auth
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseApiNotAvailableException
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
 import com.tomnylow.flipword.domain.usecase.user.SendPasswordResetUseCase
@@ -124,8 +129,46 @@ class AuthViewModel @Inject constructor(
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    private fun processAuthException(error: Throwable): String? {
-        return "jjjj"
+    private fun processAuthException(error: Throwable): String {
+        return when (error) {
+            is FirebaseAuthWeakPasswordException -> {
+                "Пароль слишком слабый"
+            }
+
+            is FirebaseAuthInvalidCredentialsException -> {
+                when (error.errorCode) {
+                    "ERROR_INVALID_EMAIL" -> "Неверный формат email"
+                    "ERROR_WRONG_PASSWORD" -> "Неверный пароль"
+                    "ERROR_USER_DISABLED" -> "Аккаунт отключён"
+                    else -> "Неверные данные для входа"
+                }
+            }
+            is FirebaseAuthUserCollisionException -> "Пользователь с таким email уже существует"
+
+            is FirebaseNetworkException -> {
+                "Нет подключения к интернету или сервер недоступен"
+            }
+            is FirebaseApiNotAvailableException -> {
+                "Сервисы Google недоступны в вашем регионе"
+            }
+            is java.net.UnknownHostException,
+            is java.net.SocketTimeoutException,
+            is java.io.IOException -> {
+                "Ошибка сети. Проверьте подключение к интернету"
+            }
+            else -> {
+                error.message?.let { msg ->
+                    when {
+                        msg.contains("TOO_MANY_ATTEMPTS_TRY_LATER", ignoreCase = true) -> "Слишком много попыток. Попробуйте позже"
+                        msg.contains("OPERATION_NOT_ALLOWED", ignoreCase = true) -> "Операция запрещена"
+                        msg.contains("INVALID_CUSTOM_TOKEN", ignoreCase = true) -> "Недействительный токен"
+                        msg.contains("CREDENTIAL_MISMATCH", ignoreCase = true) -> "Несоответствие учётных данных"
+                        msg.contains("API_NOT_AVAILABLE", ignoreCase = true) -> "Сервисы Google недоступны в вашем регионе"
+                        else -> "Неизвестная ошибка: $msg"
+                    }
+                } ?: "Произошла неизвестная ошибка"
+            }
+        }
     }
 }
 
