@@ -1,4 +1,4 @@
-package com.tomnylow.flipword.notifications
+package com.tomnylow.flipword.data.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

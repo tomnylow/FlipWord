@@ -20,7 +20,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun setOnboardingCompleted() {
         viewModelScope.launch {
-            setOnboardingCompletedUseCase()
+            setOnboardingCompletedUseCase(true)
         }
     }
     fun updateNotificationsEnabled(enabled: Boolean){
