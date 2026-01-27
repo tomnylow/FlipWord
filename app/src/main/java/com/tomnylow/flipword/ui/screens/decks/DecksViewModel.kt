@@ -2,42 +2,46 @@ package com.tomnylow.flipword.ui.screens.decks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
 import com.tomnylow.flipword.domain.usecase.deck.DeleteDeckUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetAllDecksUseCase
 import com.tomnylow.flipword.domain.usecase.deck.InsertDeckUseCase
 import com.tomnylow.flipword.domain.usecase.deck.UpdateDeckUseCase
+import com.tomnylow.flipword.domain.usecase.stats.GetDecksProgressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.emptyList
 
 @HiltViewModel
 class DecksViewModel @Inject constructor(
-    private val getAllDecksUseCase: GetAllDecksUseCase,
+    getAllDecksUseCase: GetAllDecksUseCase,
     private val insertDeckUseCase: InsertDeckUseCase,
     private val updateDeckUseCase: UpdateDeckUseCase,
-    private val deleteDeckUseCase: DeleteDeckUseCase
+    private val deleteDeckUseCase: DeleteDeckUseCase,
+    getDecksProgressUseCase: GetDecksProgressUseCase,
 ) : ViewModel() {
 
-    private val _decks = MutableStateFlow<List<Deck>>(emptyList())
-    val decks = _decks.asStateFlow()
-
-    init {
-        getDecks()
-    }
-
-    private fun getDecks() {
-        getAllDecksUseCase()
-            .onEach { decks ->
-                _decks.value = decks
-            }
-            .launchIn(viewModelScope)
-    }
+    val decks = combine(
+        getAllDecksUseCase(),
+        getDecksProgressUseCase()
+    ) { decks, stats ->
+        decks.map {deck ->
+            val progress = stats.find { it.deckId == deck.id }
+            DeckUiModel(
+                deck = deck,
+                totalCards = progress?.totalCards ?: 0,
+                learnedCards = progress?.learnedCards ?: 0
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun insertDeck(deckName: String) {
         viewModelScope.launch {
@@ -47,13 +51,22 @@ class DecksViewModel @Inject constructor(
 
     fun updateDeck(id: Long, newName: String) {
         viewModelScope.launch {
-           updateDeckUseCase(Deck(id, newName))
+            updateDeckUseCase(Deck(id, newName))
         }
     }
 
     fun deleteDeck(deck: Deck) {
         viewModelScope.launch {
-           deleteDeckUseCase(deck)
+            deleteDeckUseCase(deck)
         }
     }
+}
+
+data class DeckUiModel(
+    val deck: Deck,
+    val totalCards: Int = 0,
+    val learnedCards: Int = 0
+) {
+    val progress: Float
+        get() = if (totalCards > 0) learnedCards.toFloat() / totalCards else 0f
 }

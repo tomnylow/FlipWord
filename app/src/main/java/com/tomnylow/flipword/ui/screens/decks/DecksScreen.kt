@@ -1,12 +1,10 @@
 package com.tomnylow.flipword.ui.screens.decks
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -15,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Deck
@@ -64,8 +63,6 @@ fun DecksScreen(
     )
 }
 
-// region TopBar
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DecksTopBar(onAddClick: () -> Unit) {
@@ -85,7 +82,7 @@ private fun DecksTopBar(onAddClick: () -> Unit) {
 
 @Composable
 private fun DecksContent(
-    decks: List<Deck>,
+    decks: List<DeckUiModel>,
     onDeckClick: (Long) -> Unit,
     onDeckLongClick: (Deck) -> Unit,
     modifier: Modifier = Modifier
@@ -121,7 +118,7 @@ private fun EmptyState() {
 
 @Composable
 private fun DecksList(
-    decks: List<Deck>,
+    decks: List<DeckUiModel>,
     onDeckClick: (Long) -> Unit,
     onDeckLongClick: (Deck) -> Unit
 ) {
@@ -130,11 +127,11 @@ private fun DecksList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(decks, key = { it.id }) { deck ->
+        items(decks, key = { it.deck.id }) { deckUi ->
             DeckItem(
-                deck = deck,
-                onClick = { onDeckClick(deck.id) },
-                onLongClick = { onDeckLongClick(deck) }
+                deckUi = deckUi,
+                onClick = { onDeckClick(deckUi.deck.id) },
+                onLongClick = { onDeckLongClick(deckUi.deck) }
             )
         }
     }
@@ -142,8 +139,8 @@ private fun DecksList(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun DeckItem(
-    deck: Deck,
+fun DeckItem(
+    deckUi: DeckUiModel,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
@@ -154,27 +151,45 @@ private fun DeckItem(
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
-            )
+            ),
+
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = deck.name,
-                style = MaterialTheme.typography.titleMedium
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = deckUi.deck.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${deckUi.learnedCards} / ${deckUi.totalCards}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { deckUi.progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(MaterialTheme.shapes.small),
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
 }
-
-// endregion
-
-// region Dialogs
-
 @Composable
 private fun DecksDialogs(
     dialogState: DialogState,
