@@ -3,8 +3,9 @@ package com.tomnylow.flipword.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.domain.model.GlobalStatistics
 import com.tomnylow.flipword.domain.usecase.card.GetAllDueCardsUseCase
-import com.tomnylow.flipword.domain.usecase.stats.GetDailyStreakUseCase
+import com.tomnylow.flipword.domain.usecase.stats.GetGlobalStatsUseCase
 import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
 import com.tomnylow.flipword.domain.usecase.word.GetWordOfTheDayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    getDailyStreakUseCase: GetDailyStreakUseCase,
+    getGlobalStatsUseCase: GetGlobalStatsUseCase,
     getWordOfTheDayUseCase: GetWordOfTheDayUseCase,
     getAllDueCardsUseCase: GetAllDueCardsUseCase,
     getUserUseCase: GetUserUseCase
@@ -28,17 +29,17 @@ class HomeViewModel @Inject constructor(
     }
 
     val state: StateFlow<HomeState> = combine(
-        getDailyStreakUseCase(),
+        getGlobalStatsUseCase(),
         getAllDueCardsUseCase(),
         getUserUseCase(),
         wordOfTheDayFlow
-    ) { streak, dueCards, user, (word, definition) ->
+    ) { stats, dueCards, user, (word, definition) ->
 
         HomeState(
             username = formatUsername(user?.displayName),
-            dailyStreak = streak,
+            stats = stats,
             wordOfTheDay = word,
-            difinitionOfTheDay = definition,
+            definitionOfTheDay = definition,
             dueCards = dueCards
         )
     }.stateIn(
@@ -54,8 +55,8 @@ class HomeViewModel @Inject constructor(
 
 data class HomeState(
     val username: String = "",
-    val dailyStreak: Int = 0,
+    val stats: GlobalStatistics? = null,
     val wordOfTheDay: String = "",
-    val difinitionOfTheDay: String? = null,
+    val definitionOfTheDay: String? = null,
     val dueCards: List<Card> = emptyList()
 )
