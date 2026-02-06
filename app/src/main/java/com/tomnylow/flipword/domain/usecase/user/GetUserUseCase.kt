@@ -20,6 +20,4 @@ class GetUserUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<User?> = sessionRepository.session
     .map { it.user }
-
-
 }
