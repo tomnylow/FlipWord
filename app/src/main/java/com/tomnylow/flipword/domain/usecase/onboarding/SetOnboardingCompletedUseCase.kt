@@ -1,12 +1,12 @@
 package com.tomnylow.flipword.domain.usecase.onboarding
 
-import com.tomnylow.flipword.data.repository.OnboardingRepository
+import com.tomnylow.flipword.domain.repository.SessionRepository
 import javax.inject.Inject
 
 class SetOnboardingCompletedUseCase @Inject constructor(
-    private val onboardingRepository: OnboardingRepository
+    private val repository: SessionRepository
 ) {
-    suspend operator fun invoke() {
-        onboardingRepository.setOnboardingCompleted()
+    suspend operator fun invoke(completed: Boolean) {
+        repository.setTutorialFinished(completed)
     }
 }

@@ -6,6 +6,7 @@ import androidx.work.WorkManager
 import com.tomnylow.flipword.data.local.CardDao
 import com.tomnylow.flipword.data.local.DeckDao
 import com.tomnylow.flipword.data.local.FlipWordDatabase
+import com.tomnylow.flipword.data.local.stats.StatisticsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,5 +44,10 @@ object DatabaseModule {
     @Provides
     fun provideCardDao(database: FlipWordDatabase): CardDao {
         return database.cardDao()
+    }
+
+    @Provides
+    fun provideStatDao(database: FlipWordDatabase): StatisticsDao {
+        return database.statDao()
     }
 }

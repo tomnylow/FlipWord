@@ -9,11 +9,17 @@ interface CardDao {
     @Query("SELECT * FROM cards WHERE deckId = :deckId ORDER BY word ASC")
     fun getCardsForDeck(deckId: Long): Flow<List<CardEntity>>
 
+    @Query("SELECT * FROM cards")
+    suspend fun getAllCardsSnapshot(): List<CardEntity>
+
     @Query("SELECT * FROM cards WHERE id = :id")
     suspend fun getCardById(id: Long): CardEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCard(card: CardEntity)
+    suspend fun insertCard(card: CardEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCards(cards: List<CardEntity>)
 
     @Update
     suspend fun updateCard(card: CardEntity)

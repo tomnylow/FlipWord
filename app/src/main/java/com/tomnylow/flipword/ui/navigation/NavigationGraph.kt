@@ -1,12 +1,15 @@
 package com.tomnylow.flipword.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.tomnylow.flipword.ui.screens.auth.AuthScreen
+
 import com.tomnylow.flipword.ui.screens.deck_detail.DeckDetailScreen
 import com.tomnylow.flipword.ui.screens.home.HomeScreen
 import com.tomnylow.flipword.ui.screens.learn.LearnScreen
@@ -22,10 +25,14 @@ fun NavigationGraph(
     navController: NavHostController,
     onboardingCompleted: Boolean
 ) {
+    val startRoute = remember {
+        if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+    }
+
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = if (onboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
+        startDestination = startRoute
     ) {
         composable(Screen.Home.route) {
             HomeScreen(onRepeatWordsClick = { navController.navigate(Screen.Repeat.createRoute(null)) })
@@ -36,8 +43,14 @@ fun NavigationGraph(
             })
         }
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(onLoginClick = { navController.navigate(Screen.Auth.route) })
         }
+        composable(Screen.Auth.route) {
+            AuthScreen(
+                onAuthFinish = { navController.navigate(Screen.Home.route) }
+            )
+        }
+
         composable(
             Screen.DeckDetail.route,
             arguments = listOf(navArgument("deckId") { type = NavType.LongType })
@@ -69,8 +82,14 @@ fun NavigationGraph(
         ) {
             RepeatScreen(onNavigateBack = { navController.popBackStack() })
         }
-        composable (Screen.Onboarding.route) {
-            OnboardingScreen(onOnboardingFinished = { navController.navigate(Screen.Home.route) })
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onSkipLoginClick = { navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Onboarding.route) { inclusive = true }
+                } },
+                onLoginClick = { navController.navigate(Screen.Auth.route) {
+                    popUpTo(Screen.Onboarding.route) { inclusive = true }
+                } })
         }
     }
 }
