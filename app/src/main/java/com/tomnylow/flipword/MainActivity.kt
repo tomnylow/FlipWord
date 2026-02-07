@@ -59,8 +59,8 @@ class MainActivity : ComponentActivity() {
                             NavigationBar {
                                 mainScreens.forEach { item ->
                                     NavigationBarItem(
-                                        icon = { Icon(item.icon, contentDescription = item.title) },
-                                        label = { Text(item.title) },
+                                        icon = { Icon(item.icon, contentDescription = item.title()) },
+                                        label = { Text(item.title()) },
                                         selected = currentDestination?.route == item.route,
                                         onClick = {
                                             navController.navigate(item.route) {

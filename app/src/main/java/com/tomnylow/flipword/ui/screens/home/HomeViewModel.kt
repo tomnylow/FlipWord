@@ -1,8 +1,10 @@
 package com.tomnylow.flipword.ui.screens.home
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
 import com.tomnylow.flipword.domain.model.GlobalStatistics
@@ -35,7 +37,7 @@ class HomeViewModel @Inject constructor(
     private val addWordOfTheDayToDeckUseCase: AddWordOfTheDayToDeckUseCase
 ) : ViewModel() {
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
+    private val _snackbarMessage = MutableSharedFlow<Int>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     private val wordOfTheDayFlow = flow {
@@ -60,7 +62,7 @@ class HomeViewModel @Inject constructor(
         val showDialog = flows[5] as Boolean
 
         HomeState(
-            username = formatUsername(user?.displayName),
+            username = user?.displayName,
             stats = stats,
             wordOfTheDay = word,
             definitionOfTheDay = definition,
@@ -86,17 +88,13 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             addWordOfTheDayToDeckUseCase(deckId)
             _showDeckSelectionDialog.value = false
-            _snackbarMessage.emit("Слово добавлено в вашу колоду")
+            _snackbarMessage.emit(R.string.word_added_to_deck)
         }
-    }
-
-    private fun formatUsername(name: String?): String {
-        return if (!name.isNullOrBlank()) ", $name" else ""
     }
 }
 
 data class HomeState(
-    val username: String = "",
+    val username: String? = null,
     val stats: GlobalStatistics? = null,
     val wordOfTheDay: String = "",
     val definitionOfTheDay: String? = null,

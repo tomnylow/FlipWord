@@ -1,13 +1,13 @@
 package com.tomnylow.flipword.ui.screens.profile
 
-import android.os.Message
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.model.Settings
-import com.tomnylow.flipword.domain.model.User
 import com.tomnylow.flipword.domain.usecase.external.FetchBackupUseCase
 import com.tomnylow.flipword.domain.usecase.external.PushBackupUseCase
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
@@ -20,18 +20,14 @@ import com.tomnylow.flipword.domain.usecase.user.UpdateNotificationScheduleUseCa
 import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import java.io.IOException
-import java.net.UnknownHostException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,7 +44,7 @@ class ProfileViewModel @Inject constructor(
     getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
+    private val _snackbarMessage = MutableSharedFlow<Int>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     val state: StateFlow<SettingsState> = combine(
@@ -110,42 +106,36 @@ class ProfileViewModel @Inject constructor(
 
     fun pushDataBackup() {
         viewModelScope.launch {
-            //_state.update { it.copy(isLoading = true) }
             val result = pushBackupUseCase()
-            //_state.update { it.copy(isLoading = false) }
             result.exceptionOrNull()?.let {
-                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it) ) }
-            } ?: _snackbarMessage.emit( "Успешно отправлено в облако" )
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            } ?: _snackbarMessage.emit(R.string.backup_push_success)
         }
     }
+
     fun fetchDataBackup() {
         viewModelScope.launch {
-            //_state.update { it.copy(isLoading = true) }
             val result = fetchBackupUseCase()
-            //_state.update { it.copy(isLoading = false) }
             result.exceptionOrNull()?.let {
-                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it) ) }
-            } ?: _snackbarMessage.emit( "Успешно загружено из облака" )
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            } ?: _snackbarMessage.emit(R.string.backup_fetch_success)
         }
     }
-    private fun processBackupException(exception: Throwable): String {
+
+    @StringRes
+    private fun processBackupException(exception: Throwable): Int {
         return when (exception) {
-
-            is IllegalStateException -> "Вы не авторизованы. Пожалуйста, войдите в аккаунт."
-
+            is IllegalStateException -> R.string.backup_not_authorized
             is FirebaseFirestoreException -> when (exception.code) {
-                FirebaseFirestoreException.Code.UNAVAILABLE -> "Сервер недоступен (оффлайн). Проверьте интернет."
-                FirebaseFirestoreException.Code.PERMISSION_DENIED -> "Доступ запрещен. Попробуйте выйти и войти снова."
-                FirebaseFirestoreException.Code.RESOURCE_EXHAUSTED -> "Превышена квота использования базы."
-                FirebaseFirestoreException.Code.INVALID_ARGUMENT -> "Бэкап слишком большой (>1 МБ) или содержит неверные данные."
-                else -> "Ошибка облака: ${exception.code}"
+                FirebaseFirestoreException.Code.UNAVAILABLE -> R.string.backup_server_unavailable
+                FirebaseFirestoreException.Code.PERMISSION_DENIED -> R.string.backup_permission_denied
+                FirebaseFirestoreException.Code.RESOURCE_EXHAUSTED -> R.string.backup_quota_exceeded
+                FirebaseFirestoreException.Code.INVALID_ARGUMENT -> R.string.backup_invalid_argument
+                else -> R.string.backup_cloud_error
             }
-
-            is IOException -> "Нет подключения к интернету."
-
-            is SerializationException -> "Не удалось обработать данные для отправки."
-
-            else -> "Произошла ошибка: ${exception.localizedMessage ?: "Неизвестная причина"}"
+            is IOException -> R.string.backup_no_internet
+            is SerializationException -> R.string.backup_serialization_error
+            else -> R.string.backup_unknown_error
         }
     }
 }

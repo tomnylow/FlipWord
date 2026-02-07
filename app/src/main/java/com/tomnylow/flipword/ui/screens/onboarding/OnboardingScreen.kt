@@ -24,6 +24,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -37,10 +38,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tomnylow.flipword.R
 
 private data class OnboardingPageInfo(
     val image: ImageVector,
@@ -76,7 +79,7 @@ fun OnboardingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text("Пропустить")
+                Text(stringResource(R.string.onboarding_skip))
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -134,14 +137,14 @@ private fun getOnboardingPages(
 
     return listOf(
         OnboardingPageInfo(
-            image = Icons.Default.LibraryBooks,
-            title = "Создавайте и организуйте",
-            description = "Легко создавайте карточки со словами, переводом и примерами с помощью автозаполнения. Организуйте их в персональные колоды для удобного обучения."
+            image = Icons.AutoMirrored.Filled.LibraryBooks,
+            title = stringResource(R.string.onboarding_cards_title),
+            description = stringResource(R.string.onboarding_cards_text)
         ),
         OnboardingPageInfo(
             image = Icons.Default.NotificationsActive,
-            title = "Умные уведомления",
-            description = "Получайте своевременные напоминания для повторения слов в самое эффективное для вас время.",
+            title = stringResource(R.string.onboarding_notif_title),
+            description = stringResource(R.string.onboarding_notif_text),
             content = { viewModel ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -156,7 +159,7 @@ private fun getOnboardingPages(
                             }
                         }
                     ) {
-                        Text("Разрешить уведомления")
+                        Text(stringResource(R.string.onboarding_allow_notif_button))
                     }
                     OutlinedButton(
                         onClick = {
@@ -171,10 +174,10 @@ private fun getOnboardingPages(
                             }
                         }
                     ) {
-                        Text("Включить точные напоминания")
+                        Text(stringResource(R.string.onboarding_allow_alarms_button))
                     }
                     Text(
-                        text = "Вы всегда можете изменить это в настройках профиля.",
+                        text = stringResource(R.string.onboarding_notif_note),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Center,
@@ -185,8 +188,8 @@ private fun getOnboardingPages(
         ),
         OnboardingPageInfo(
             image = Icons.Default.Backup,
-            title = "Сохраняйте свой прогресс",
-            description = "Войдите в аккаунт, чтобы ваши колоды и прогресс обучения были доступны на любом устройстве.",
+            title = stringResource(R.string.onboarding_account_title),
+            description = stringResource(R.string.onboarding_account_text),
             content = { viewModel ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -200,7 +203,7 @@ private fun getOnboardingPages(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Войти или создать аккаунт")
+                        Text(stringResource(R.string.onboarding_goto_login_button))
                     }
                     TextButton(
                         onClick = {
@@ -208,7 +211,7 @@ private fun getOnboardingPages(
                             onSkipLoginClick()
                         }
                     ) {
-                        Text("Продолжить без аккаунта")
+                        Text(stringResource(R.string.continue_logout_button))
                     }
                 }
             }

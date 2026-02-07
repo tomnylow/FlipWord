@@ -1,8 +1,10 @@
 package com.tomnylow.flipword.ui.screens.deck_detail
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
 import com.tomnylow.flipword.domain.model.Language
@@ -46,7 +48,7 @@ class DeckDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(DeckDetailState())
     val state = _state.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
+    private val _snackbarMessage = MutableSharedFlow<Int>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     private var autoFillJob: Job? = null
@@ -77,7 +79,7 @@ class DeckDetailViewModel @Inject constructor(
                 }.launchIn(this)
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
-                _snackbarMessage.emit("Ошибка загрузки колоды")
+                _snackbarMessage.emit(R.string.deck_detail_load_error)
             }
         }
     }
@@ -152,13 +154,13 @@ class DeckDetailViewModel @Inject constructor(
 
             when {
                 translation == null && dictionaryData == null -> {
-                    _snackbarMessage.emit("Не удалось получить данные: проверьте подключение")
+                    _snackbarMessage.emit(R.string.autofill_connection_error)
                 }
                 translation == null -> {
-                    _snackbarMessage.emit("Не удалось получить перевод")
+                    _snackbarMessage.emit(R.string.autofill_translation_error)
                 }
                 dictionaryData == null -> {
-                    _snackbarMessage.emit("Не удалось получить определение или пример")
+                    _snackbarMessage.emit(R.string.autofill_definition_error)
                 }
             }
         }
@@ -189,7 +191,7 @@ class DeckDetailViewModel @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                _snackbarMessage.emit("Ошибка сохранения карточки")
+                _snackbarMessage.emit(R.string.card_save_error)
             }
         }
     }
@@ -209,7 +211,7 @@ class DeckDetailViewModel @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                _snackbarMessage.emit("Ошибка обновления карточки")
+                _snackbarMessage.emit(R.string.card_update_error)
             }
         }
     }
@@ -219,7 +221,7 @@ class DeckDetailViewModel @Inject constructor(
             try {
                 deleteCardUseCase(card)
             } catch (e: Exception) {
-                _snackbarMessage.emit("Ошибка удаления карточки")
+                _snackbarMessage.emit(R.string.card_delete_error)
             }
         }
         onDismissDialog()

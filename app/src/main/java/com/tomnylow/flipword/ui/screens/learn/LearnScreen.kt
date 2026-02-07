@@ -25,11 +25,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tomnylow.flipword.R
 
 import com.tomnylow.flipword.ui.screens.repeat.FlippableCard
 
@@ -45,10 +47,10 @@ fun LearnScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Изучение") },
+                title = { Text(stringResource(R.string.learn_screen_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back_description))
                     }
                 }
             )
@@ -61,7 +63,7 @@ fun LearnScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Нет карточек для изучения")
+                Text(stringResource(R.string.no_cards_to_learn_message))
             }
         } else {
             HorizontalPager(

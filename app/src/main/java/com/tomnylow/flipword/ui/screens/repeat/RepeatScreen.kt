@@ -43,13 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,10 +64,13 @@ fun RepeatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Повторение") },
+                title = { Text(stringResource(R.string.repeat_screen_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.go_back_description)
+                        )
                     }
                 }
             )
@@ -132,7 +136,10 @@ fun RepeatScreen(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Нет карточек для повторения", textAlign = TextAlign.Center)
+                    Text(
+                        stringResource(R.string.no_cards_to_repeat_text),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
@@ -156,13 +163,13 @@ fun SessionStats(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "🎉\nОтличная работа!",
+            text = stringResource(R.string.repeat_finished_title),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Статистика сессии:",
+            text = stringResource(R.string.repeat_finished_stats),
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -170,36 +177,39 @@ fun SessionStats(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.MoodBad,
-                contentDescription = "Не знаю",
+                contentDescription = stringResource(R.string.dont_know_description),
                 tint = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Не знаю: $againCount", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(R.string.repeat_dont_know_stats, againCount),
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.SentimentNeutral,
-                contentDescription = "Нормально",
+                contentDescription = stringResource(R.string.normal_description),
                 tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Нормально: $normalCount", style = MaterialTheme.typography.bodyLarge)
+            Text(text = stringResource(R.string.repeat_normal_stats, normalCount), style = MaterialTheme.typography.bodyLarge)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Mood,
-                contentDescription = "Отлично",
+                contentDescription = stringResource(R.string.perfect_description),
                 tint = Color(0xFF2E7D32)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Отлично: $perfectCount", style = MaterialTheme.typography.bodyLarge)
+            Text(text = stringResource(R.string.repeat_perfect_stats, perfectCount), style = MaterialTheme.typography.bodyLarge)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onFinish) {
-            Text("Завершить")
+            Text(stringResource(R.string.finish_repeat))
         }
     }
 }
@@ -267,7 +277,7 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable { onRatingSelected(Rating.AGAIN) },
             imageVector = Icons.Default.MoodBad,
-            contentDescription = "Не знаю",
+            contentDescription = stringResource(R.string.dont_know_description),
             tint = MaterialTheme.colorScheme.onPrimary,
         )
 
@@ -278,7 +288,7 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable { onRatingSelected(Rating.NORMAL) },
             imageVector = Icons.Default.SentimentNeutral,
-            contentDescription = "Нормально",
+            contentDescription =stringResource(R.string.normal_description),
             tint = MaterialTheme.colorScheme.onPrimary
         )
 
@@ -289,7 +299,7 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable { onRatingSelected(Rating.PERFECT) },
             imageVector = Icons.Default.Mood,
-            contentDescription = "Отлично",
+            contentDescription = stringResource(R.string.perfect_description),
             tint = MaterialTheme.colorScheme.onPrimary
         )
 
@@ -299,6 +309,8 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
 sealed interface RepeatUiState {
     object Loading : RepeatUiState
     data class Success(val card: Card) : RepeatUiState
-    data class SessionFinished(val againCount: Int, val normalCount: Int, val perfectCount: Int) : RepeatUiState
+    data class SessionFinished(val againCount: Int, val normalCount: Int, val perfectCount: Int) :
+        RepeatUiState
+
     object NoCardsToRepeat : RepeatUiState
 }

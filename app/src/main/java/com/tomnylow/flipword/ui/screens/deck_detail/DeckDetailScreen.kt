@@ -22,10 +22,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Language
 import kotlinx.coroutines.flow.collectLatest
@@ -40,10 +43,11 @@ fun DeckDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collectLatest { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.snackbarMessage.collectLatest { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
         }
     }
 
@@ -52,23 +56,23 @@ fun DeckDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = state.deck?.name ?: "Загрузка...",
+                        text = state.deck?.name ?: stringResource(R.string.deck_screen_error_title),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back_description))
                     }
                 },
                 actions = {
                     state.deck?.id?.let { id ->
                         TextButton(onClick = { onLearnClick(id) }) {
-                            Text("Учить")
+                            Text(stringResource(R.string.learn_cards_button))
                         }
                         TextButton(onClick = { onRepeatClick(id) }) {
-                            Text("Повтор")
+                            Text(stringResource(R.string.repeat_cards_button))
                         }
                     }
                 }
@@ -76,7 +80,7 @@ fun DeckDetailScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = viewModel::onShowCreateDialog) {
-                Icon(Icons.Default.Add, contentDescription = "Добавить карточку")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -198,7 +202,7 @@ private fun EmptyState() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "В этой колоде пока нет карточек.\nДобавьте первую!",
+            text = stringResource(R.string.no_cards_in_deck_message),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center

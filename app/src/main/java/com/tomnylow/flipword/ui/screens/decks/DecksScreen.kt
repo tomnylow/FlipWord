@@ -24,11 +24,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Deck
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +45,7 @@ fun DecksScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Колоды") }
+                title = { Text(stringResource(R.string.decks_screen_title)) }
             )
         },
         floatingActionButton = {
@@ -51,7 +53,7 @@ fun DecksScreen(
                 onClick = { dialogState = DialogState.Create }
             ) { Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Создать колоду"
+                contentDescription = stringResource(R.string.add_button)
             )}
         }
     ) { innerPadding ->
@@ -115,7 +117,7 @@ private fun EmptyState() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "У вас пока нет колод.\nНажмите + чтобы создать первую",
+            text = stringResource(R.string.no_decks_message),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center

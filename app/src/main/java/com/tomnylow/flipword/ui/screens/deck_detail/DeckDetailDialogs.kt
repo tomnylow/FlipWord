@@ -12,7 +12,9 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
@@ -30,7 +32,7 @@ fun NewCardDialog(
     onConfirm: () -> Unit
 ) {
     CardDialog(
-        title = "Новая карточка",
+        title = stringResource(R.string.new_card_dialog_title),
         word = state.word,
         translation = state.translation,
         definition = state.definition,
@@ -45,7 +47,7 @@ fun NewCardDialog(
         onAutoFill = onAutoFill,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
-        confirmButtonText = "Создать"
+        confirmButtonText = stringResource(R.string.add_button)
     )
 }
 
@@ -63,7 +65,7 @@ fun EditCardDialog(
     onDelete: () -> Unit
 ) {
     CardDialog(
-        title = "Редактировать карточку",
+        title = stringResource(R.string.edit_card_dialog_title),
         word = state.word,
         translation = state.translation,
         definition = state.definition,
@@ -78,7 +80,7 @@ fun EditCardDialog(
         onAutoFill = onAutoFill,
         onDismiss = onDismiss,
         onConfirm = onConfirm,
-        confirmButtonText = "Сохранить",
+        confirmButtonText = stringResource(R.string.save_button),
         additionalContent = {
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
@@ -94,7 +96,7 @@ fun EditCardDialog(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Удалить карточку")
+                Text(stringResource(R.string.remove_card_button))
             }
         }
     )
@@ -128,7 +130,11 @@ private fun CardDialog(
                 OutlinedTextField(
                     value = word,
                     onValueChange = onWordChange,
-                    label = { Text("Слово (${learningLanguage.displayName})") },
+                    label = { Text(
+                        stringResource(
+                            R.string.card_word_prefix,
+                            learningLanguage.displayName
+                        )) },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         if (word.isNotBlank()) {
@@ -148,20 +154,24 @@ private fun CardDialog(
                 OutlinedTextField(
                     value = translation,
                     onValueChange = onTranslationChange,
-                    label = { Text("Перевод (${nativeLanguage.displayName})") },
+                    label = { Text(
+                        stringResource(
+                            R.string.card_translation_prefix,
+                            nativeLanguage.displayName
+                        )) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = definition,
                     onValueChange = onDefinitionChange,
-                    label = { Text("Определение (необязательно)") },
+                    label = { Text(stringResource(R.string.card_definition_prefix)) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3
                 )
                 OutlinedTextField(
                     value = example,
                     onValueChange = onExampleChange,
-                    label = { Text("Пример (необязательно)") },
+                    label = { Text(stringResource(R.string.card_usages_prefix)) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 2
                 )
@@ -178,7 +188,7 @@ private fun CardDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel_button))
             }
         }
     )
@@ -191,8 +201,8 @@ fun DeleteCardConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Удалить карточку?") },
-        text = { Text("Эта карточка будет удалена безвозвратно.") },
+        title = { Text(stringResource(R.string.remove_card_dialog_title)) },
+        text = { Text(stringResource(R.string.remove_card_dialog_text)) },
         confirmButton = {
             Button(
                 onClick = onConfirm,
@@ -200,12 +210,12 @@ fun DeleteCardConfirmationDialog(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text("Удалить")
+                Text(stringResource(R.string.remove_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.cancel_button))
             }
         }
     )

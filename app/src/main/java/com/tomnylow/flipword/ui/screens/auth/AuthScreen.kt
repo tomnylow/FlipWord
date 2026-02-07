@@ -1,5 +1,6 @@
 package com.tomnylow.flipword.ui.screens.auth
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,13 +8,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tomnylow.flipword.R
 import kotlinx.coroutines.delay
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun AuthScreen(
     onAuthFinish: () -> Unit,
@@ -22,11 +27,13 @@ fun AuthScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.message.collect { message ->
+        viewModel.message.collect { messageResId ->
+            val message = context.getString(messageResId)
             snackbarHostState.showSnackbar(message)
-            if (message.contains("Письмо отправлено")) {
+            if (messageResId == R.string.auth_password_reset_email_sent) {
                 delay(1000)
                 showForgotPasswordDialog = false
             }
@@ -52,8 +59,8 @@ fun AuthScreen(
             ) {
                 Text(
                     text = when (state.mode) {
-                        AuthMode.LOGIN -> "Вход"
-                        AuthMode.REGISTER -> "Регистрация"
+                        AuthMode.LOGIN -> stringResource(R.string.auth_login_title)
+                        AuthMode.REGISTER -> stringResource(R.string.auth_register_title)
                     },
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
@@ -66,7 +73,7 @@ fun AuthScreen(
                         modifier = Modifier.fillMaxWidth(),
                         value = state.name,
                         onValueChange = viewModel::onNameChanged,
-                        label = { Text("Имя") }
+                        label = { Text(stringResource(R.string.user_name_prefix)) }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -75,7 +82,7 @@ fun AuthScreen(
                     modifier = Modifier.fillMaxWidth(),
                     value = state.email,
                     onValueChange = viewModel::onEmailChanged,
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.user_email_perfix)) },
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
                 )
 
@@ -85,7 +92,7 @@ fun AuthScreen(
                     modifier = Modifier.fillMaxWidth(),
                     value = state.password,
                     onValueChange = viewModel::onPasswordChanged,
-                    label = { Text("Пароль") },
+                    label = { Text(stringResource(R.string.user_password_prefix)) },
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     visualTransformation = PasswordVisualTransformation()
                 )
@@ -107,8 +114,8 @@ fun AuthScreen(
                     } else {
                         Text(
                             when (state.mode) {
-                                AuthMode.LOGIN -> "Войти"
-                                AuthMode.REGISTER -> "Зарегистрироваться"
+                                AuthMode.LOGIN -> stringResource(R.string.auth_login_button)
+                                AuthMode.REGISTER -> stringResource(R.string.auth_register_button)
                             }
                         )
                     }
@@ -120,8 +127,8 @@ fun AuthScreen(
                     viewModel.toggleMode()
                 }) {
                     Text(
-                        if (state.mode == AuthMode.LOGIN) "Нет аккаунта? Регистрация"
-                        else "Уже есть аккаунт? Вход"
+                        if (state.mode == AuthMode.LOGIN) stringResource(R.string.auth_switch_to_register)
+                        else stringResource(R.string.auth_switch_to_login)
                     )
                 }
 
@@ -129,14 +136,14 @@ fun AuthScreen(
 
                 if (state.mode == AuthMode.LOGIN) {
                     TextButton(onClick = { showForgotPasswordDialog = true }) {
-                        Text("Забыли пароль?")
+                        Text(stringResource(R.string.auth_forgot_password_button))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 TextButton(onClick = onAuthFinish) {
-                    Text("Продолжить без аккаунта")
+                    Text(stringResource(R.string.continue_logout_button))
                 }
             }
         }
@@ -145,14 +152,14 @@ fun AuthScreen(
     if (showForgotPasswordDialog) {
         AlertDialog(
             onDismissRequest = { showForgotPasswordDialog = false },
-            title = { Text("Восстановить пароль") },
+            title = { Text(stringResource(R.string.recover_password_dialog_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("Введите email, указанный при регистрации", textAlign = TextAlign.Center)
+                    Text(stringResource(R.string.recover_password_dialog_text), textAlign = TextAlign.Center)
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = viewModel::onEmailChanged,
-                        label = { Text("Email") },
+                        label = { Text(stringResource(R.string.user_email_perfix)) },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
                     )
@@ -168,13 +175,13 @@ fun AuthScreen(
                     if (state.isLoading) {
                         CircularProgressIndicator(Modifier.size(16.dp))
                     } else {
-                        Text("Отправить")
+                        Text(stringResource(R.string.recover_password_confirm_button))
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showForgotPasswordDialog = false }) {
-                    Text("Отмена")
+                    Text(stringResource(R.string.cancel_button))
                 }
             }
         )

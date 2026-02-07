@@ -1,5 +1,6 @@
 package com.tomnylow.flipword.ui.screens.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Deck
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -41,14 +44,15 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     val totalLearned = state.stats?.totalLearnedWords ?: 0
     val accuracy = state.stats?.accuracyPercentage?.toInt() ?: 0
     val streak = state.stats?.dayStreak ?: 0
 
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.snackbarMessage.collect { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
         }
     }
 
@@ -62,7 +66,7 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Привет" + state.username) })
+            TopAppBar(title = { Text(stringResource(R.string.home_screen_greeting) + (state.username?.let { ", $it" } ?: "")) })
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
@@ -78,7 +82,7 @@ fun HomeScreen(
         ) {
 
             HomeStatCard(
-                title = "Серия дней",
+                title = stringResource(R.string.streake_title),
                 value = "$streak",
                 valueStyle = MaterialTheme.typography.displayLarge
             )
@@ -100,13 +104,13 @@ fun HomeScreen(
             ) {
 
                 HomeStatCard(
-                    title = "Изучено слов",
+                    title = stringResource(R.string.words_learned_stat),
                     value = "$totalLearned",
                     modifier = Modifier.weight(1f)
                 )
 
                 HomeStatCard(
-                    title = "Точность",
+                    title = stringResource(R.string.accuracy_stat),
                     value = "$accuracy%",
                     modifier = Modifier.weight(1f)
                 )
@@ -123,7 +127,7 @@ private fun DeckSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Выберите колоду") },
+        title = { Text(stringResource(R.string.add_word_of_the_day_dialog_title)) },
         text = {
             LazyColumn {
                 items(decks) { deck ->
@@ -158,7 +162,7 @@ private fun WordOfTheDayCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Слово дня",
+                text = stringResource(R.string.word_of_the_day_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -183,7 +187,7 @@ private fun WordOfTheDayCard(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.padding(start = 8.dp))
-                Text("Добавить")
+                Text(stringResource(R.string.add_button))
             }
         }
     }
@@ -209,7 +213,7 @@ private fun RepeatCard(count: Int, onClick: () -> Unit) {
         ) {
             if (count > 0) {
                 Text(
-                    text = "Слов на повторение",
+                    text = stringResource(R.string.home_repeat_button_title),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
@@ -218,7 +222,7 @@ private fun RepeatCard(count: Int, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Нажмите, чтобы начать урок",
+                    text = stringResource(R.string.home_repeat_button_message),
                     style = MaterialTheme.typography.labelLarge
                 )
             } else {
@@ -227,7 +231,7 @@ private fun RepeatCard(count: Int, onClick: () -> Unit) {
                     contentDescription = null
                 )
                 Text(
-                    text = "Все слова повторены!",
+                    text = stringResource(R.string.home_repeat_no_words),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

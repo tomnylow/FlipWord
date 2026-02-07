@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,13 +58,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
@@ -96,8 +100,8 @@ fun ProfileScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.snackbarMessage.collect { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
         }
     }
 
@@ -106,6 +110,11 @@ fun ProfileScreen(
             SnackbarHost(
                 hostState = snackbarHostState
             )
+        },
+        topBar = {
+            TopAppBar({
+                Text(stringResource(R.string.profile_screen_title))
+            })
         },
         content = { paddingValues ->
 
@@ -129,11 +138,6 @@ fun ProfileScreen(
                     .padding(16.dp)
 
             ) {
-                Text(
-                    text = "Профиль",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
 
                 AccountInfoCard(
                     email = state.userEmail,
@@ -152,36 +156,48 @@ fun ProfileScreen(
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
                         Text(
-                            text = "Настройки",
+                            text = stringResource(R.string.settings_block_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
 
                         DropdownSettingItem(
-                            title = "Родной язык",
+                            title = stringResource(R.string.native_lang_setting),
                             value = state.settings.nativeLanguage.displayName,
                             items = Language.entries,
                             itemToString = { it.displayName },
                             onItemSelected = { viewModel.updateNativeLanguage(it) }
                         )
                         DropdownSettingItem(
-                            title = "Изучаемый язык",
+                            title = stringResource(R.string.learning_lang_setting),
                             value = state.settings.learningLanguage.displayName,
                             items = Language.entries,
                             itemToString = { it.displayName },
                             onItemSelected = { viewModel.updateLearningLanguage(it) }
                         )
 
+                        val currentTheme = when (state.settings.theme) {
+                            AppTheme.SYSTEM -> stringResource(R.string.system_theme_name)
+                            AppTheme.LIGHT -> stringResource(R.string.light_theme_name)
+                            AppTheme.DARK -> stringResource(R.string.dark_theme_name)
+                        }
+
                         DropdownSettingItem(
-                            title = "Тема приложения",
-                            value = state.settings.theme.displayName,
+                            title = stringResource(R.string.app_theme_setting),
+                            value = currentTheme,
                             items = AppTheme.entries,
-                            itemToString = { it.displayName },
+                            itemToString = {
+                                when(it) {
+                                    AppTheme.SYSTEM -> context.getString(R.string.system_theme_name)
+                                    AppTheme.LIGHT -> context.getString(R.string.light_theme_name)
+                                    AppTheme.DARK -> context.getString(R.string.dark_theme_name)
+                                }
+                            },
                             onItemSelected = { viewModel.updateTheme(it) }
                         )
 
                         SwitchSettingItem(
-                            title = "Уведомления",
+                            title = stringResource(R.string.notif_setting),
                             checked = state.settings.notificationsEnabled,
                             onCheckedChange = { checked ->
                                 if (!checked) {
@@ -205,13 +221,13 @@ fun ProfileScreen(
                                     }
                                     exactAlarmPermissionLauncher.launch(intent)
                                 },
-                                content = { Text("Разрешить напоминать вовремя", style = MaterialTheme.typography.bodyLarge) })
+                                content = { Text(stringResource(R.string.allow_alarms_setting), style = MaterialTheme.typography.bodyLarge) })
 
                         }
 
                         if (state.settings.notificationsEnabled) {
                             TimeSettingItem(
-                                title = "Время напоминания",
+                                title = stringResource(R.string.notif_time_setting),
                                 hour = state.settings.notificationHour,
                                 minute = state.settings.notificationMinute,
                                 onClick = { showTimePicker = true }
@@ -239,7 +255,7 @@ fun AccountInfoCard(
         Column(modifier = Modifier.padding(16.dp)) {
 
             Text(
-                text = "Аккаунт",
+                text = stringResource(R.string.account_block_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -249,15 +265,15 @@ fun AccountInfoCard(
             if (email != null) {
 
                 UserInfoRow(
-                    label = "Имя",
-                    value = name ?: "Не указано",
+                    label = stringResource(R.string.user_name_prefix),
+                    value = name ?: stringResource(R.string.user_name_not_found),
                     icon = Icons.Default.Person
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 UserInfoRow(
-                    label = "Email",
+                    label = stringResource(R.string.user_email_perfix),
                     value = email,
                     icon = Icons.Default.Email
                 )
@@ -268,7 +284,7 @@ fun AccountInfoCard(
                     onClick = onPushClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Отправить в облако")
+                    Text(stringResource(R.string.push_backup_button))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -277,7 +293,7 @@ fun AccountInfoCard(
                     onClick = onFetchClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Загрузить из облака")
+                    Text(stringResource(R.string.fetch_backup_button))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -286,13 +302,13 @@ fun AccountInfoCard(
                     onClick = onSignOutClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Выйти")
+                    Text(stringResource(R.string.logout_button))
                 }
 
             } else {
 
                 Text(
-                    text = "Вы не авторизованы. Войдите, чтобы сохранять прогресс.",
+                    text = stringResource(R.string.user_not_auth_message),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -302,7 +318,7 @@ fun AccountInfoCard(
                     onClick = onLoginClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Войти")
+                    Text(stringResource(R.string.login_button))
                 }
             }
         }
@@ -451,7 +467,7 @@ fun TimePickerDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "Выберите время",
+                    text = stringResource(R.string.timepicker_title),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -466,14 +482,14 @@ fun TimePickerDialog(
                         .fillMaxWidth()
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Отмена")
+                        Text(stringResource(R.string.cancel_button))
                     }
                     TextButton(
                         onClick = {
                             onConfirm(timePickerState.hour, timePickerState.minute)
                         }
                     ) {
-                        Text("OK")
+                        Text(stringResource(R.string.apply_button))
                     }
                 }
             }
