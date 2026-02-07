@@ -14,6 +14,7 @@ Great job!</string>
     <string name="repeat_normal_stats">Normal: %1$d</string>
     <string name="perfect_description">Perfect</string>
     <string name="repeat_perfect_stats">Perfect: %1$d</string>
+    <string name="continue_repeat">Continue repetition</string>
     <string name="finish_repeat">Finish</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_cards_text">Easily create cards with words, translations, and examples using autofill. Organize them into personal decks for convenient learning.</string>

@@ -87,7 +87,19 @@ fun NavigationGraph(
                 nullable = true
             })
         ) {
-            RepeatScreen(onNavigateBack = { navController.popBackStack() })
+            RepeatScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onContinueRepetitionClick = {
+                    navController.navigate(Screen.Study.route) {
+                        popUpTo(navController.graph.findStartDestination().id)
+                    }
+                },
+                onFinishSessionClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(navController.graph.findStartDestination().id)
+                    }
+                }
+            )
         }
         composable(Screen.Onboarding.route) {
             OnboardingScreen(

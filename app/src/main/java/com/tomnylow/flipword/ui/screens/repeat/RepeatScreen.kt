@@ -47,7 +47,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+
 import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
@@ -57,7 +58,9 @@ import com.tomnylow.flipword.domain.sm2.Rating
 @Composable
 fun RepeatScreen(
     viewModel: RepeatViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onContinueRepetitionClick: () -> Unit,
+    onFinishSessionClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -125,7 +128,8 @@ fun RepeatScreen(
                     againCount = state.againCount,
                     normalCount = state.normalCount,
                     perfectCount = state.perfectCount,
-                    onFinish = onNavigateBack
+                    onContinueRepetitionClick = onContinueRepetitionClick,
+                    onFinishSessionClick = onFinishSessionClick
                 )
             }
 
@@ -153,7 +157,8 @@ fun SessionStats(
     againCount: Int,
     normalCount: Int,
     perfectCount: Int,
-    onFinish: () -> Unit
+    onContinueRepetitionClick: () -> Unit,
+    onFinishSessionClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -208,7 +213,11 @@ fun SessionStats(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onFinish) {
+        Button(onClick = onContinueRepetitionClick) {
+            Text(stringResource(R.string.continue_repeat))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onFinishSessionClick) {
             Text(stringResource(R.string.finish_repeat))
         }
     }

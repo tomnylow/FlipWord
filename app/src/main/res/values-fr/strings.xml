@@ -13,6 +13,7 @@
     <string name="repeat_normal_stats">Normal : %1$d</string>
     <string name="perfect_description">Parfait</string>
     <string name="repeat_perfect_stats">Parfait : %1$d</string>
+    <string name="continue_repeat">Continuer la répétition</string>
     <string name="finish_repeat">Terminer</string>
     <string name="onboarding_skip">Passer</string>
     <string name="onboarding_cards_text">Créez facilement des cartes avec des mots, des traductions et des exemples grâce à la saisie automatique. Organisez-les en paquets personnels pour un apprentissage pratique.</string>

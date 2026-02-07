@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FlipWord</string>
     <string name="no_definition">No definition</string>
@@ -14,7 +15,8 @@
     <string name="repeat_normal_stats">Нормально: %1$d</string>
     <string name="perfect_description">Отлично</string>
     <string name="repeat_perfect_stats">Отлично: %1$d</string>
-    <string name="finish_repeat">Завершить</string>
+    <string name="continue_repeat">Продолжить повторение</string>
+    <string name="finish_repeat">Закончить</string>
     <string name="onboarding_skip">Пропустить</string>
     <string name="onboarding_cards_text">Легко создавайте карточки со словами, переводом и примерами с помощью автозаполнения. Организуйте их в персональные колоды для удобного обучения.</string>
     <string name="onboarding_cards_title">Создавайте и организуйте</string>
