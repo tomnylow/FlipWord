@@ -9,6 +9,13 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,8 +41,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.center
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -61,12 +72,25 @@ fun OnboardingScreen(
     val pages = getOnboardingPages(onLoginClick, onSkipLoginClick)
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
+
     Column(modifier = Modifier.fillMaxSize()) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) { pageIndex ->
-            OnboardingPageContent(pages[pageIndex], viewModel)
+        Box(modifier = Modifier.weight(1f)) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { pageIndex ->
+                OnboardingPageContent(pages[pageIndex], viewModel)
+            }
+
+            // Show swipe animation only on the first page
+            if (pagerState.currentPage == 0) {
+                SwipeAnimation(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(bottom = 90.dp)
+                )
+            }
         }
 
         AnimatedVisibility(visible = pagerState.currentPage < pages.size - 1) {
@@ -150,42 +174,45 @@ private fun getOnboardingPages(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(
-                        onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        Button(
+                            onClick = {
                                 notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                viewModel.updateNotificationsEnabled(true)
                             }
+                        ) {
+                            Text(stringResource(R.string.onboarding_allow_notif_button))
                         }
-                    ) {
-                        Text(stringResource(R.string.onboarding_allow_notif_button))
+                    } else {
+                        viewModel.updateNotificationsEnabled(true)
                     }
-                    OutlinedButton(
-                        onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                                if (!alarmManager.canScheduleExactAlarms()) {
-                                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                                        data = "package:${context.packageName}".toUri()
-                                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val alarmManager =
+                            context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                        if (!alarmManager.canScheduleExactAlarms()) {
+                            OutlinedButton(
+                                onClick = {
+                                    val intent =
+                                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                            data = "package:${context.packageName}".toUri()
+                                        }
                                     exactAlarmPermissionLauncher.launch(intent)
                                 }
+                            ) {
+                                Text(stringResource(R.string.onboarding_allow_alarms_button))
                             }
                         }
-                    ) {
-                        Text(stringResource(R.string.onboarding_allow_alarms_button))
+
+                        Text(
+                            text = stringResource(R.string.onboarding_notif_note),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
-                    Text(
-                        text = stringResource(R.string.onboarding_notif_note),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
                 }
-            }
-        ),
+            }),
         OnboardingPageInfo(
             image = Icons.Default.Backup,
             title = stringResource(R.string.onboarding_account_title),
@@ -217,4 +244,44 @@ private fun getOnboardingPages(
             }
         )
     )
+}
+
+@Composable
+private fun SwipeAnimation(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "swipe_animation")
+    val position by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 0.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, delayMillis = 500),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "swipe_position"
+    )
+
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1500
+                delayMillis = 500
+                1f at 0
+                1f at 1000
+                0f at 1500
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "swipe_alpha"
+    )
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        val width = size.width
+        drawCircle(
+            color = primaryColor.copy(alpha = alpha),
+            radius = 12.dp.toPx(),
+            center = this.center.copy(x = width * position),
+        )
+    }
 }
