@@ -165,9 +165,7 @@ fun DeckItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -187,6 +185,8 @@ fun DeckItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            
+            Spacer(modifier = Modifier.height(8.dp))
 
             LinearProgressIndicator(
                 progress = { deckUi.progress },
@@ -200,173 +200,3 @@ fun DeckItem(
     }
 }
 
-@Composable
-private fun DecksDialogs(
-    dialogState: DialogState,
-    onDismiss: () -> Unit,
-    onCreateDeck: (String) -> Unit,
-    onEditDeck: (Long, String) -> Unit,
-    onDeleteDeck: (Deck) -> Unit,
-    onNavigateToDelete: (Deck) -> Unit
-) {
-    when (dialogState) {
-        is DialogState.Hidden -> Unit
-
-        is DialogState.Create -> {
-            DeckNameDialog(
-                onDismiss = onDismiss,
-                onConfirm = onCreateDeck
-            )
-        }
-
-        is DialogState.Edit -> {
-            DeckEditDialog(
-                deck = dialogState.deck,
-                onDismiss = onDismiss,
-                onSave = { newName -> onEditDeck(dialogState.deck.id, newName) },
-                onDelete = { onNavigateToDelete(dialogState.deck) }
-            )
-        }
-
-        is DialogState.Delete -> {
-            DeleteConfirmationDialog(
-                deck = dialogState.deck,
-                onDismiss = onDismiss,
-                onConfirm = { onDeleteDeck(dialogState.deck) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun DeckNameDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    val isNameValid = name.isNotBlank()
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Новая колода") },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Название колоды") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(name.trim()) },
-                enabled = isNameValid
-            ) {
-                Text("Добавить")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
-        }
-    )
-}
-
-@Composable
-private fun DeckEditDialog(
-    deck: Deck,
-    onDismiss: () -> Unit,
-    onSave: (String) -> Unit,
-    onDelete: () -> Unit
-) {
-    var name by remember { mutableStateOf(deck.name) }
-    val isNameValid = name.isNotBlank()
-    val hasChanges = name.trim() != deck.name
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Редактирование") },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Название колоды") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedButton(
-                    onClick = onDelete,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Удалить колоду")
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onSave(name.trim()) },
-                enabled = isNameValid && hasChanges
-            ) {
-                Text("Сохранить")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
-        }
-    )
-}
-
-@Composable
-private fun DeleteConfirmationDialog(
-    deck: Deck,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Удалить колоду?") },
-        text = {
-            Text("Колода «${deck.name}» и все карточки внутри будут удалены безвозвратно.")
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text("Удалить")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
-        }
-    )
-}
-
-private sealed interface DialogState {
-    data object Hidden : DialogState
-    data object Create : DialogState
-    data class Edit(val deck: Deck) : DialogState
-    data class Delete(val deck: Deck) : DialogState
-}

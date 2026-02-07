@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
 import com.tomnylow.flipword.domain.model.Language
+import com.tomnylow.flipword.domain.usecase.card.DeleteCardUseCase
 import com.tomnylow.flipword.domain.usecase.card.GetCardsForDeckUseCase
 import com.tomnylow.flipword.domain.usecase.card.InsertCardUseCase
+import com.tomnylow.flipword.domain.usecase.card.UpdateCardUseCase
 import com.tomnylow.flipword.domain.usecase.deck.GetDeckByIdUseCase
 import com.tomnylow.flipword.domain.usecase.external.GetDictionaryDataUseCase
 import com.tomnylow.flipword.domain.usecase.external.GetTranslationUseCase
@@ -15,7 +17,6 @@ import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,6 +33,8 @@ class DeckDetailViewModel @Inject constructor(
     private val getDeckByIdUseCase: GetDeckByIdUseCase,
     private val getCardsForDeckUseCase: GetCardsForDeckUseCase,
     private val insertCardUseCase: InsertCardUseCase,
+    private val updateCardUseCase: UpdateCardUseCase,
+    private val deleteCardUseCase: DeleteCardUseCase,
     private val getTranslationUseCase: GetTranslationUseCase,
     private val getDictionaryDataUseCase: GetDictionaryDataUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
@@ -96,6 +98,33 @@ class DeckDetailViewModel @Inject constructor(
         _state.update { it.copy(newCard = it.newCard.copy(example = example)) }
     }
 
+    fun onShowCreateDialog() {
+        _state.update { it.copy(dialogState = DialogState.Create) }
+    }
+
+    fun onShowEditDialog(card: Card) {
+        _state.update { state ->
+            state.copy(
+                dialogState = DialogState.Edit(card),
+                newCard = state.newCard.copy(
+                    word = card.word,
+                    translation = card.translation ?: "",
+                    definition = card.definition ?: "",
+                    example = card.usageExample ?: ""
+                )
+            )
+        }
+    }
+
+    fun onShowDeleteDialog(card: Card) {
+        _state.update { it.copy(dialogState = DialogState.Delete(card)) }
+    }
+
+    fun onDismissDialog() {
+        clearNewCardState()
+        _state.update { it.copy(dialogState = DialogState.Hidden) }
+    }
+
     fun autoFillCard(learningLanguage: Language, nativeLanguage: Language) {
         val word = _state.value.newCard.word
         if (word.isBlank()) return
@@ -103,7 +132,6 @@ class DeckDetailViewModel @Inject constructor(
         autoFillJob?.cancel()
         autoFillJob = viewModelScope.launch {
             _state.update { it.copy(isAutoFilling = true) }
-
 
             val translationDeferred = async { getTranslationUseCase(word, learningLanguage.code, nativeLanguage.code) }
             val dictionaryDeferred = async { getDictionaryDataUseCase(word, learningLanguage) }
@@ -126,11 +154,9 @@ class DeckDetailViewModel @Inject constructor(
                 translation == null && dictionaryData == null -> {
                     _snackbarMessage.emit("Не удалось получить данные: проверьте подключение")
                 }
-
                 translation == null -> {
                     _snackbarMessage.emit("Не удалось получить перевод")
                 }
-
                 dictionaryData == null -> {
                     _snackbarMessage.emit("Не удалось получить определение или пример")
                 }
@@ -138,32 +164,74 @@ class DeckDetailViewModel @Inject constructor(
         }
     }
 
-    fun insertCard() {
-        val card = _state.value.newCard
-        if (card.word.isBlank() || card.translation.isBlank()) return
+    fun processCard() {
+        when (val dialog = _state.value.dialogState) {
+            is DialogState.Create -> insertCard()
+            is DialogState.Edit -> updateCard(dialog.card)
+            else -> Unit
+        }
+        onDismissDialog()
+    }
+
+    private fun insertCard() {
+        val cardState = _state.value.newCard
+        if (cardState.word.isBlank() || cardState.translation.isBlank()) return
 
         viewModelScope.launch {
             try {
                 insertCardUseCase(
                     Card(
-                        word = card.word,
-                        translation = card.translation,
-                        definition = card.definition.ifBlank { null },
-                        usageExample = card.example.ifBlank { null },
+                        word = cardState.word,
+                        translation = cardState.translation,
+                        definition = cardState.definition.ifBlank { null },
+                        usageExample = cardState.example.ifBlank { null },
                         deckId = deckId
                     )
                 )
-                clearNewCardState()
             } catch (e: Exception) {
                 _snackbarMessage.emit("Ошибка сохранения карточки")
             }
         }
     }
 
-    fun clearNewCardState() {
+    private fun updateCard(card: Card) {
+        val cardState = _state.value.newCard
+        if (cardState.word.isBlank() || cardState.translation.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                updateCardUseCase(
+                    card.copy(
+                        word = cardState.word,
+                        translation = cardState.translation,
+                        definition = cardState.definition.ifBlank { null },
+                        usageExample = cardState.example.ifBlank { null },
+                    )
+                )
+            } catch (e: Exception) {
+                _snackbarMessage.emit("Ошибка обновления карточки")
+            }
+        }
+    }
+
+    fun deleteCard(card: Card) {
+        viewModelScope.launch {
+            try {
+                deleteCardUseCase(card)
+            } catch (e: Exception) {
+                _snackbarMessage.emit("Ошибка удаления карточки")
+            }
+        }
+        onDismissDialog()
+    }
+
+    private fun clearNewCardState() {
         autoFillJob?.cancel()
         autoFillJob = null
-        _state.update { it.copy(newCard = NewCardState(learningLanguage = it.newCard.learningLanguage, nativeLanguage = it.newCard.nativeLanguage)) }
+        _state.update { it.copy(
+            newCard = NewCardState(learningLanguage = it.newCard.learningLanguage, nativeLanguage = it.newCard.nativeLanguage),
+            isAutoFilling = false
+        ) }
     }
 }
 
@@ -172,7 +240,8 @@ data class DeckDetailState(
     val cards: List<Card> = emptyList(),
     val newCard: NewCardState = NewCardState(),
     val isLoading: Boolean = false,
-    val isAutoFilling: Boolean = false
+    val isAutoFilling: Boolean = false,
+    val dialogState: DialogState = DialogState.Hidden
 )
 
 data class NewCardState(
@@ -183,3 +252,10 @@ data class NewCardState(
     val nativeLanguage: Language = Language.RUSSIAN,
     val learningLanguage: Language = Language.ENGLISH,
 )
+
+sealed interface DialogState {
+    data object Hidden : DialogState
+    data object Create : DialogState
+    data class Edit(val card: Card) : DialogState
+    data class Delete(val card: Card) : DialogState
+}
