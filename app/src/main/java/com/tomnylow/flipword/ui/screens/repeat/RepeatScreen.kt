@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
@@ -72,19 +73,24 @@ fun RepeatScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // Карточка занимает большую часть, но не всю
                 FlippableCard(
                     modifier = Modifier.weight(1f),
                     frontContent = {
                         Text(
+                            modifier = Modifier.padding(16.dp),
                             text = currentCard!!.word,
-                            style = MaterialTheme.typography.headlineLarge
+                            style = MaterialTheme.typography.headlineLarge,
+                            maxLines = 7,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     },
                     backContent = {
                         Text(
+                            modifier = Modifier.padding(16.dp),
                             text = currentCard!!.translation ?: "",
-                            style = MaterialTheme.typography.headlineLarge
+                            style = MaterialTheme.typography.headlineLarge,
+                            maxLines = 7,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 )

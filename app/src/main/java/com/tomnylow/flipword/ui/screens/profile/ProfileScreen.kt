@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,14 +57,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
-import androidx.core.net.toUri
-
 
 @Composable
 fun ProfileScreen(
@@ -75,16 +72,10 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val notificationsPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { enabled ->
-            viewModel.updateNotificationsEnabled(enabled)
-        }
-    )
     val snackbarHostState = remember { SnackbarHostState() }
-    val scrollState = rememberScrollState()
+    var showExactAlarmButton by remember { mutableStateOf(false) }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { enabled ->
             viewModel.updateNotificationsEnabled(enabled)
@@ -97,6 +88,13 @@ fun ProfileScreen(
         viewModel.updateNotificationsEnabled(true)
     }
 
+    LaunchedEffect(state.settings.notificationsEnabled) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            showExactAlarmButton = state.settings.notificationsEnabled && !alarmManager.canScheduleExactAlarms()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collect { message ->
             snackbarHostState.showSnackbar(message)
@@ -106,8 +104,7 @@ fun ProfileScreen(
     Scaffold(
         snackbarHost = {
             SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.padding(bottom = 80.dp) // TODO : Решить проблему с вложенным scaffold
+                hostState = snackbarHostState
             )
         },
         content = { paddingValues ->
@@ -127,7 +124,7 @@ fun ProfileScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(scrollState)
+                    .verticalScroll(rememberScrollState())
                     .padding(paddingValues)
                     .padding(16.dp)
 
@@ -145,7 +142,6 @@ fun ProfileScreen(
                         // TODO
                     },
                     onLoginClick = onLoginClick,
-
                     onPushClick = viewModel::pushDataBackup,
                     onFetchClick = viewModel::fetchDataBackup,
                 )
@@ -153,16 +149,13 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
                         Text(
                             text = "Настройки",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
 
                         DropdownSettingItem(
                             title = "Родной язык",
@@ -171,10 +164,6 @@ fun ProfileScreen(
                             itemToString = { it.displayName },
                             onItemSelected = { viewModel.updateNativeLanguage(it) }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
-
                         DropdownSettingItem(
                             title = "Изучаемый язык",
                             value = state.settings.learningLanguage.displayName,
@@ -182,9 +171,6 @@ fun ProfileScreen(
                             itemToString = { it.displayName },
                             onItemSelected = { viewModel.updateLearningLanguage(it) }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
 
                         DropdownSettingItem(
                             title = "Тема приложения",
@@ -193,7 +179,6 @@ fun ProfileScreen(
                             itemToString = { it.displayName },
                             onItemSelected = { viewModel.updateTheme(it) }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         SwitchSettingItem(
                             title = "Уведомления",
@@ -208,45 +193,31 @@ fun ProfileScreen(
                                         viewModel.updateNotificationsEnabled(true)
                                     }
                                 }
-
                             }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    if (state.settings.notificationsEnabled) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-
+                        if (showExactAlarmButton) {
                             TextButton(
+                                modifier = Modifier.fillMaxWidth(),
                                 onClick = {
-                                    val alarmManager =
-                                        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                                    if (alarmManager.canScheduleExactAlarms()) {
-                                        viewModel.updateNotificationsEnabled(true)
-                                    } else {
-                                        val intent = Intent().apply {
-                                            action =
-                                                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                                            data = "package:${context.packageName}".toUri()
-                                        }
-                                        exactAlarmPermissionLauncher.launch(intent)
+                                    val intent = Intent().apply {
+                                        action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                                        data = "package:${context.packageName}".toUri()
                                     }
+                                    exactAlarmPermissionLauncher.launch(intent)
                                 },
-                                content = { Text("Установить точное время", style = MaterialTheme.typography.bodyMedium ) })
+                                content = { Text("Разрешить напоминать вовремя", style = MaterialTheme.typography.bodyLarge) })
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+
+                        if (state.settings.notificationsEnabled) {
+                            TimeSettingItem(
+                                title = "Время напоминания",
+                                hour = state.settings.notificationHour,
+                                minute = state.settings.notificationMinute,
+                                onClick = { showTimePicker = true }
+                            )
                         }
                     }
-
-                    TimeSettingItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        title = "Время напоминания",
-                        hour = state.settings.notificationHour,
-                        minute = state.settings.notificationMinute,
-                        onClick = { showTimePicker = true }
-                    )
-                    Spacer(modifier = Modifier.height(80.dp))
-
                 }
             }
         }
@@ -334,7 +305,6 @@ fun AccountInfoCard(
                     Text("Войти")
                 }
             }
-
         }
     }
 }
@@ -445,8 +415,7 @@ private fun SwitchSettingItem(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

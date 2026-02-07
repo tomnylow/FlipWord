@@ -28,7 +28,6 @@ fun DeckDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collectLatest { message ->
@@ -39,7 +38,13 @@ fun DeckDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.deck?.name ?: "Загрузка...") },
+                title = {
+                    Text(
+                        text = state.deck?.name ?: "Загрузка...",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
@@ -58,13 +63,11 @@ fun DeckDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
+            FloatingActionButton(onClick = viewModel::onShowCreateDialog) {
                 Icon(Icons.Default.Add, contentDescription = "Добавить карточку")
             }
         },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         Box(
             modifier = Modifier

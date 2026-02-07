@@ -1,15 +1,28 @@
 package com.tomnylow.flipword.ui.screens.home
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState // Добавил для скролла
-import androidx.compose.foundation.verticalScroll     // Добавил для скролла
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -39,9 +52,9 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -100,35 +113,56 @@ fun HomeScreen(
                 }
             }
 
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onRepeatWordsClick)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Слов на повторение",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "${state.dueCards.size}",
-                        style = MaterialTheme.typography.displayLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Нажмите, чтобы начать урок",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+            RepeatCard(
+                count = state.dueCards.size,
+                onClick = onRepeatWordsClick
+            )
+        }
+    }
+}
+
+@Composable
+fun RepeatCard(count: Int, onClick: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (count > 0) {
+                Text(
+                    text = "Слов на повторение",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "$count",
+                    style = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Нажмите, чтобы начать урок",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.AssignmentTurnedIn,
+                    contentDescription = null
+                )
+                Text(
+                    text = "Все слова повторены!",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

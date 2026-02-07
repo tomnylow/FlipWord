@@ -82,7 +82,7 @@ class AuthViewModel @Inject constructor(
             val result = signInUseCase(email, password)
             _state.update { it.copy(isLoading = false) }
             result.exceptionOrNull()?.let {
-                viewModelScope.launch { _message.emit(processAuthException(it) ?: "Ошибка входа") }
+                viewModelScope.launch { _message.emit(processAuthException(it)) }
             }
         }
     }
@@ -102,7 +102,7 @@ class AuthViewModel @Inject constructor(
             val result = signUpUseCase(name, email, password)
             _state.update { it.copy(isLoading = false) }
             result.exceptionOrNull()?.let {
-                viewModelScope.launch { _message.emit(processAuthException(it) ?: "Ошибка регистрации") }
+                viewModelScope.launch { _message.emit(processAuthException(it) ) }
 
             }
         }
@@ -120,7 +120,7 @@ class AuthViewModel @Inject constructor(
             val result = sendPasswordResetEmailUseCase(email)
             _state.update { it.copy(isLoading = false) }
             result.exceptionOrNull()?.let {
-                viewModelScope.launch { _message.emit(processAuthException(it) ?: "Ошибка регистрации") }
+                viewModelScope.launch { _message.emit(processAuthException(it)) }
             } ?: viewModelScope.launch { _message.emit("Письмо отправлено") }
         }
     }

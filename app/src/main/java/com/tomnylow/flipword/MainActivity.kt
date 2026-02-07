@@ -76,11 +76,11 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                ) {
+                ) { innerPaddings ->
                     if (onboardingCompleted != null) {
                         NavigationGraph(
                             navController = navController,
-                            modifier = Modifier.padding(),
+                            modifier = Modifier.padding(bottom = innerPaddings.calculateBottomPadding()),
                             onboardingCompleted = onboardingCompleted == true
                         )
                     }
