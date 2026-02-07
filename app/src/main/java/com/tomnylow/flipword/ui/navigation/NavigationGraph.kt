@@ -3,6 +3,7 @@ package com.tomnylow.flipword.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -47,7 +48,13 @@ fun NavigationGraph(
         }
         composable(Screen.Auth.route) {
             AuthScreen(
-                onAuthFinish = { navController.navigate(Screen.Home.route) }
+                onAuthFinish = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
 
@@ -84,12 +91,16 @@ fun NavigationGraph(
         }
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
-                onSkipLoginClick = { navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Onboarding.route) { inclusive = true }
-                } },
-                onLoginClick = { navController.navigate(Screen.Auth.route) {
-                    popUpTo(Screen.Onboarding.route) { inclusive = true }
-                } })
+                onSkipLoginClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                },
+                onLoginClick = {
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                })
         }
     }
 }
