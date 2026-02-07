@@ -33,6 +33,6 @@ interface StatisticsDao {
     )
     fun getDecksProgressRaw(): Flow<List<DeckProgress>>
     @Insert
-    fun insertLog(studyLogEntity: StudyLogEntity)
+    suspend fun insertLog(studyLogEntity: StudyLogEntity)
 }
 

@@ -9,17 +9,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material.icons.filled.MoodBad
 import androidx.compose.material.icons.filled.SentimentNeutral
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,12 +41,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +58,7 @@ fun RepeatScreen(
     viewModel: RepeatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    val currentCard by viewModel.currentCard.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -63,42 +72,138 @@ fun RepeatScreen(
             )
         }
     ) { padding ->
-        if (currentCard == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Карточки для повторения закончились!")
+        when (val state = uiState) {
+            RepeatUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                FlippableCard(
-                    modifier = Modifier.weight(1f),
-                    frontContent = {
-                        Text(
-                            modifier = Modifier.padding(16.dp),
-                            text = currentCard!!.word,
-                            style = MaterialTheme.typography.headlineLarge,
-                            maxLines = 7,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    backContent = {
-                        Text(
-                            modifier = Modifier.padding(16.dp),
-                            text = currentCard!!.translation ?: "",
-                            style = MaterialTheme.typography.headlineLarge,
-                            maxLines = 7,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+
+            is RepeatUiState.Success -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    FlippableCard(
+                        modifier = Modifier.weight(1f),
+                        frontContent = {
+                            Text(
+                                modifier = Modifier.padding(16.dp),
+                                text = state.card.word,
+                                style = MaterialTheme.typography.headlineLarge,
+                                maxLines = 7,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        backContent = {
+                            Text(
+                                modifier = Modifier.padding(16.dp),
+                                text = state.card.translation ?: "",
+                                style = MaterialTheme.typography.headlineLarge,
+                                maxLines = 7,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    )
+                    RatingButtons { viewModel.onRatingSelected(it) }
+                }
+            }
+
+            is RepeatUiState.SessionFinished -> {
+                SessionStats(
+                    modifier = Modifier.padding(padding),
+                    againCount = state.againCount,
+                    normalCount = state.normalCount,
+                    perfectCount = state.perfectCount,
+                    onFinish = onNavigateBack
                 )
-                RatingButtons { viewModel.onRatingSelected(it) }
             }
+
+            RepeatUiState.NoCardsToRepeat -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Нет карточек для повторения", textAlign = TextAlign.Center)
+                }
+            }
+
         }
     }
 }
+
+@Composable
+fun SessionStats(
+    modifier: Modifier = Modifier,
+    againCount: Int,
+    normalCount: Int,
+    perfectCount: Int,
+    onFinish: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "🎉\nОтличная работа!",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Статистика сессии:",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.MoodBad,
+                contentDescription = "Не знаю",
+                tint = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Не знаю: $againCount", style = MaterialTheme.typography.bodyLarge)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.SentimentNeutral,
+                contentDescription = "Нормально",
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Нормально: $normalCount", style = MaterialTheme.typography.bodyLarge)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Mood,
+                contentDescription = "Отлично",
+                tint = Color(0xFF2E7D32)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Отлично: $perfectCount", style = MaterialTheme.typography.bodyLarge)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = onFinish) {
+            Text("Завершить")
+        }
+    }
+}
+
 
 @Composable
 fun FlippableCard(
@@ -189,4 +294,11 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
         )
 
     }
+}
+
+sealed interface RepeatUiState {
+    object Loading : RepeatUiState
+    data class Success(val card: Card) : RepeatUiState
+    data class SessionFinished(val againCount: Int, val normalCount: Int, val perfectCount: Int) : RepeatUiState
+    object NoCardsToRepeat : RepeatUiState
 }
