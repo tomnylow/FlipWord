@@ -37,9 +37,9 @@ object SM2Algorithm {
             rating.value <= 2 -> {
                 SM2Params(
                     easeFactor = maxOf(1.3, currentParams.easeFactor - 0.2),
-                    interval = 1,
+                    interval = 0,
                     repetition = 0,
-                    nextReviewDate = currentDate.plusDays(1)
+                    nextReviewDate = currentDate
                 )
             }
             else -> {

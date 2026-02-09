@@ -1,8 +1,14 @@
 package com.tomnylow.flipword.ui.screens.repeat
 
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -54,7 +59,7 @@ import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.sm2.Rating
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun RepeatScreen(
     viewModel: RepeatViewModel = hiltViewModel(),
@@ -95,29 +100,41 @@ fun RepeatScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding)
+                        .padding(padding),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    FlippableCard(
+                    AnimatedContent(
                         modifier = Modifier.weight(1f),
-                        frontContent = {
-                            Text(
-                                modifier = Modifier.padding(16.dp),
-                                text = state.card.word,
-                                style = MaterialTheme.typography.headlineLarge,
-                                maxLines = 7,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                        targetState = state.card,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(300)).togetherWith(
+                                fadeOut(
+                                    animationSpec = tween(300)
+                                ) + slideOutHorizontally(animationSpec = tween(300)) { -it })
                         },
-                        backContent = {
-                            Text(
-                                modifier = Modifier.padding(16.dp),
-                                text = state.card.translation ?: "",
-                                style = MaterialTheme.typography.headlineLarge,
-                                maxLines = 7,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    )
+                        label = "card_transition"
+                    ) { card ->
+                        FlippableCard(
+                            frontContent = {
+                                Text(
+                                    modifier = Modifier.padding(16.dp),
+                                    text = card.word,
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    maxLines = 7,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            backContent = {
+                                Text(
+                                    modifier = Modifier.padding(16.dp),
+                                    text = card.translation ?: "",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    maxLines = 7,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        )
+                    }
                     RatingButtons { viewModel.onRatingSelected(it) }
                 }
             }
@@ -196,26 +213,33 @@ fun SessionStats(
             Icon(
                 imageVector = Icons.Default.SentimentNeutral,
                 contentDescription = stringResource(R.string.normal_description),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.tertiary
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.repeat_normal_stats, normalCount), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(R.string.repeat_normal_stats, normalCount),
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Mood,
                 contentDescription = stringResource(R.string.perfect_description),
-                tint = Color(0xFF2E7D32)
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.repeat_perfect_stats, perfectCount), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(R.string.repeat_perfect_stats, perfectCount),
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onContinueRepetitionClick) {
             Text(stringResource(R.string.continue_repeat))
         }
+
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onFinishSessionClick) {
             Text(stringResource(R.string.finish_repeat))
@@ -241,7 +265,7 @@ fun FlippableCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 64.dp)
+            .padding(horizontal = 24.dp, vertical = 32.dp)
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = 12 * density
@@ -271,9 +295,9 @@ fun FlippableCard(
 }
 
 @Composable
-private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
+private fun RatingButtons(modifier: Modifier = Modifier, onRatingSelected: (Rating) -> Unit) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
@@ -283,7 +307,7 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.error)
                 .clickable { onRatingSelected(Rating.AGAIN) },
             imageVector = Icons.Default.MoodBad,
             contentDescription = stringResource(R.string.dont_know_description),
@@ -294,10 +318,10 @@ private fun RatingButtons(onRatingSelected: (Rating) -> Unit) {
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.tertiary)
                 .clickable { onRatingSelected(Rating.NORMAL) },
             imageVector = Icons.Default.SentimentNeutral,
-            contentDescription =stringResource(R.string.normal_description),
+            contentDescription = stringResource(R.string.normal_description),
             tint = MaterialTheme.colorScheme.onPrimary
         )
 
