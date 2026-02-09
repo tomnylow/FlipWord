@@ -89,11 +89,6 @@ fun NavigationGraph(
         ) {
             RepeatScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onContinueRepetitionClick = {
-                    navController.navigate(Screen.Study.route) {
-                        popUpTo(navController.graph.findStartDestination().id)
-                    }
-                },
                 onFinishSessionClick = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(navController.graph.findStartDestination().id)

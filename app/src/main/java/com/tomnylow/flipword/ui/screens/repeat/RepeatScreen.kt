@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material.icons.filled.MoodBad
@@ -41,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,11 +64,11 @@ import com.tomnylow.flipword.domain.sm2.Rating
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun RepeatScreen(
-    viewModel: RepeatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onContinueRepetitionClick: () -> Unit,
     onFinishSessionClick: () -> Unit
 ) {
+    var repetition by remember { mutableIntStateOf(0) }
+    val viewModel: RepeatViewModel = hiltViewModel(key = "Repeat $repetition")
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -76,7 +78,7 @@ fun RepeatScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            Icons.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.go_back_description)
                         )
                     }
@@ -145,8 +147,9 @@ fun RepeatScreen(
                     againCount = state.againCount,
                     normalCount = state.normalCount,
                     perfectCount = state.perfectCount,
-                    onContinueRepetitionClick = onContinueRepetitionClick,
-                    onFinishSessionClick = onFinishSessionClick
+                    onContinueRepetitionClick = { repetition++ },
+                    onFinishSessionClick = onFinishSessionClick,
+                    isContinueEnabled = state.againCount > 0
                 )
             }
 
@@ -175,7 +178,8 @@ fun SessionStats(
     normalCount: Int,
     perfectCount: Int,
     onContinueRepetitionClick: () -> Unit,
-    onFinishSessionClick: () -> Unit
+    onFinishSessionClick: () -> Unit,
+    isContinueEnabled: Boolean
 ) {
     Column(
         modifier = modifier
@@ -236,7 +240,10 @@ fun SessionStats(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onContinueRepetitionClick) {
+        Button(
+            onClick = onContinueRepetitionClick,
+            enabled = isContinueEnabled
+        ) {
             Text(stringResource(R.string.continue_repeat))
         }
 
