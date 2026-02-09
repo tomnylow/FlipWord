@@ -140,4 +140,5 @@ Press + to create the first one</string>
     <string name="backup_serialization_error">Failed to process data for sending.</string>
     <string name="backup_unknown_error">An error has occurred: %1$s</string>
     <string name="go_forward_button">Next</string>
+    <string name="autofill_button">Autofill</string>
 </resources>

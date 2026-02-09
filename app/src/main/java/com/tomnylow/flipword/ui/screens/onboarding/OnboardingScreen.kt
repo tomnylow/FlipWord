@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tomnylow.flipword.R
+import com.tomnylow.flipword.ui.icons.customIcons
 import kotlinx.coroutines.launch
 
 private data class OnboardingPageInfo(
@@ -94,57 +95,69 @@ fun OnboardingScreen(
         ) { pageIndex ->
             OnboardingPageContent(pages[pageIndex], viewModel)
         }
-        IconButton(
-            onClick = {
-                val currentPage = pagerState.currentPage
-                if (currentPage > 0) {
-                    animationScope.launch {
-                        pagerState.animateScrollToPage(currentPage - 1)
-                    }
-                }
-            },
-            enabled = pagerState.currentPage > 0
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.go_back_description)
-            )
-        }
-
         Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(pages.size) { index ->
-                val color = if (pagerState.currentPage == index) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            IconButton(
+                onClick = {
+                    val currentPage = pagerState.currentPage
+                    if (currentPage > 0) {
+                        animationScope.launch {
+                            pagerState.animateScrollToPage(
+                                page = pagerState.currentPage - 1,
+                                animationSpec = tween(durationMillis = 300)
+                            )
+                        }
+                    }
+                },
+                enabled = pagerState.currentPage > 0
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.go_back_description)
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
+            ) {
+                repeat(pages.size) { index ->
+                    val color = if (pagerState.currentPage == index) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                    )
                 }
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(color)
+            }
+
+
+            IconButton(
+                onClick = {
+                    animationScope.launch {
+                        pagerState.animateScrollToPage(
+                            page = pagerState.currentPage + 1,
+                            animationSpec = tween(durationMillis = 300)
+                        )
+                    }
+                },
+                enabled = pagerState.currentPage < pages.size - 1
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(R.string.go_forward_button)
                 )
             }
         }
 
-
-        IconButton(
-            onClick = {
-                animationScope.launch {
-                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                }
-            },
-            enabled = pagerState.currentPage < pages.size - 1
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = stringResource(R.string.go_forward_button)
-            )
-        }
 
         TextButton(
             modifier = Modifier
@@ -160,7 +173,7 @@ fun OnboardingScreen(
             Text(stringResource(R.string.onboarding_skip))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+
     }
 }
 
@@ -215,7 +228,7 @@ private fun getOnboardingPages(
 
     return listOf(
         OnboardingPageInfo(
-            image = Icons.AutoMirrored.Filled.LibraryBooks,
+            image = customIcons.TablerCards,
             title = stringResource(R.string.onboarding_cards_title),
             description = stringResource(R.string.onboarding_cards_text)
         ),

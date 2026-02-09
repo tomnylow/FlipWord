@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.tomnylow.flipword.R
-import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Language
-import com.tomnylow.flipword.ui.icons.FontAwesomeMagic
+import com.tomnylow.flipword.ui.icons.customIcons
+
 
 @Composable
 fun NewCardDialog(
@@ -130,11 +130,14 @@ private fun CardDialog(
                 OutlinedTextField(
                     value = word,
                     onValueChange = onWordChange,
-                    label = { Text(
-                        stringResource(
-                            R.string.card_word_prefix,
-                            learningLanguage.displayName
-                        )) },
+                    label = {
+                        Text(
+                            stringResource(
+                                R.string.card_word_prefix,
+                                learningLanguage.displayName
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         if (word.isNotBlank()) {
@@ -143,9 +146,18 @@ private fun CardDialog(
                                 enabled = !isAutoFilling
                             ) {
                                 if (isAutoFilling) {
-                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp
+                                    )
                                 } else {
-                                    Icon(modifier = Modifier.size(16.dp), imageVector = FontAwesomeMagic, contentDescription = "Заполнить")
+                                    Icon(
+                                        modifier = Modifier.size(16.dp),
+                                        imageVector = customIcons.FontAwesomeMagic,
+                                        contentDescription = stringResource(
+                                            R.string.autofill_button
+                                        )
+                                    )
                                 }
                             }
                         }
@@ -154,11 +166,14 @@ private fun CardDialog(
                 OutlinedTextField(
                     value = translation,
                     onValueChange = onTranslationChange,
-                    label = { Text(
-                        stringResource(
-                            R.string.card_translation_prefix,
-                            nativeLanguage.displayName
-                        )) },
+                    label = {
+                        Text(
+                            stringResource(
+                                R.string.card_translation_prefix,
+                                nativeLanguage.displayName
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
