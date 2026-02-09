@@ -17,6 +17,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,12 +31,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -43,8 +51,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -55,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tomnylow.flipword.R
+import kotlinx.coroutines.launch
 
 private data class OnboardingPageInfo(
     val image: ImageVector,
@@ -71,41 +82,84 @@ fun OnboardingScreen(
 ) {
     val pages = getOnboardingPages(onLoginClick, onSkipLoginClick)
     val pagerState = rememberPagerState(pageCount = { pages.size })
-
+    val animationScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(1f)) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { pageIndex ->
-                OnboardingPageContent(pages[pageIndex], viewModel)
-            }
 
-            // Show swipe animation only on the first page
-            if (pagerState.currentPage == 0) {
-                SwipeAnimation(
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+        ) { pageIndex ->
+            OnboardingPageContent(pages[pageIndex], viewModel)
+        }
+        IconButton(
+            onClick = {
+                val currentPage = pagerState.currentPage
+                if (currentPage > 0) {
+                    animationScope.launch {
+                        pagerState.animateScrollToPage(currentPage - 1)
+                    }
+                }
+            },
+            enabled = pagerState.currentPage > 0
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.go_back_description)
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            repeat(pages.size) { index ->
+                val color = if (pagerState.currentPage == index) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                }
+                Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(bottom = 90.dp)
+                        .padding(horizontal = 4.dp)
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(color)
                 )
             }
         }
 
-        AnimatedVisibility(visible = pagerState.currentPage < pages.size - 1) {
-            TextButton(
-                onClick = {
-                    viewModel.setOnboardingCompleted()
-                    onSkipLoginClick()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(stringResource(R.string.onboarding_skip))
-            }
+
+        IconButton(
+            onClick = {
+                animationScope.launch {
+                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                }
+            },
+            enabled = pagerState.currentPage < pages.size - 1
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = stringResource(R.string.go_forward_button)
+            )
         }
+
+        TextButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            onClick = {
+                viewModel.setOnboardingCompleted()
+                onSkipLoginClick()
+            },
+            enabled = pagerState.canScrollForward
+
+        ) {
+            Text(stringResource(R.string.onboarding_skip))
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -246,42 +300,3 @@ private fun getOnboardingPages(
     )
 }
 
-@Composable
-private fun SwipeAnimation(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "swipe_animation")
-    val position by infiniteTransition.animateFloat(
-        initialValue = 0.9f,
-        targetValue = 0.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1500, delayMillis = 500),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "swipe_position"
-    )
-
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1500
-                delayMillis = 500
-                1f at 0
-                1f at 1000
-                0f at 1500
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "swipe_alpha"
-    )
-    val primaryColor = MaterialTheme.colorScheme.primary
-
-    Canvas(modifier = modifier) {
-        val width = size.width
-        drawCircle(
-            color = primaryColor.copy(alpha = alpha),
-            radius = 12.dp.toPx(),
-            center = this.center.copy(x = width * position),
-        )
-    }
-}

@@ -137,4 +137,5 @@ Appuyez sur + pour créer le premier</string>
     <string name="backup_no_internet">Pas de connexion Internet.</string>
     <string name="backup_serialization_error">Échec du traitement des données pour l\'envoi.</string>
     <string name="backup_unknown_error">Une erreur est survenue : %1$s</string>
+    <string name="go_forward_button">Forwe</string>
 </resources>

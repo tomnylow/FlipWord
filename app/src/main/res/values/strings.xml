@@ -140,4 +140,5 @@
     <string name="backup_no_internet">Нет подключения к интернету.</string>
     <string name="backup_serialization_error">Не удалось обработать данные для отправки.</string>
     <string name="backup_unknown_error">Произошла ошибка: %1$s</string>
+    <string name="go_forward_button">Далее</string>
 </resources>
