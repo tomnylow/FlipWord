@@ -8,6 +8,7 @@ import com.tomnylow.flipword.data.local.CardDao
 import com.tomnylow.flipword.data.local.DeckDao
 import com.tomnylow.flipword.data.local.FlipWordDatabase
 import com.tomnylow.flipword.data.local.model.BackupEntity
+import com.tomnylow.flipword.data.local.stats.StatisticsDao
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -17,6 +18,7 @@ class BackupRepository @Inject constructor(
     private val database: FlipWordDatabase,
     private val deckDao: DeckDao,
     private val cardDao: CardDao,
+    private val statDao: StatisticsDao,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val json: Json
@@ -29,8 +31,9 @@ class BackupRepository @Inject constructor(
 
             val decks = deckDao.getAllDecksSnapshot()
             val cards = cardDao.getAllCardsSnapshot()
+            val stats = statDao.getAllLogsSnapshot()
 
-            val backupData = BackupEntity(decks = decks, cards = cards)
+            val backupData = BackupEntity(decks = decks, cards = cards, stats = stats)
             val jsonString = json.encodeToString(backupData)
             withTimeout(10000L) {
                 val firebaseData = hashMapOf(

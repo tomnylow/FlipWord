@@ -3,6 +3,7 @@ package com.tomnylow.flipword.data.local.stats
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.tomnylow.flipword.data.local.model.DeckEntity
 import com.tomnylow.flipword.domain.model.DeckProgress
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -20,6 +21,9 @@ interface StatisticsDao {
 
     @Query("SELECT DISTINCT date FROM study_logs ORDER BY date DESC")
     fun getStudyDates(): Flow<List<LocalDate>>
+
+    @Query("SELECT * FROM study_logs")
+    suspend fun getAllLogsSnapshot(): List<StudyLogEntity>
 
     @Query(
         """
