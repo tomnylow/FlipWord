@@ -117,7 +117,7 @@ Appuyez sur + pour créer le premier</string>
     <string name="auth_operation_not_allowed">Opération non autorisée</string>
     <string name="auth_invalid_custom_token">Jeton personnalisé invalide</string>
     <string name="auth_credential_mismatch">Les informations d\'identification ne correspondent pas</string>
-    <string name="auth_unknown_error">Erreur inconnue : %1$s</string>
+    <string name="auth_unknown_error">"Erreur inconnue "</string>
     <string name="auth_unknown_error_no_message">Une erreur inconnue est survenue</string>
     <string name="deck_detail_load_error">Erreur lors du chargement du paquet</string>
     <string name="autofill_connection_error">Échec de la récupération des données : vérifiez la connexion</string>
@@ -133,10 +133,10 @@ Appuyez sur + pour créer le premier</string>
     <string name="backup_permission_denied">Autorisation refusée. Veuillez essayer de vous déconnecter et de vous reconnecter.</string>
     <string name="backup_quota_exceeded">Quota d\'utilisation de la base de données dépassé.</string>
     <string name="backup_invalid_argument">La sauvegarde est trop volumineuse (>1 Mo) ou contient des données non valides.</string>
-    <string name="backup_cloud_error">Erreur cloud : %1$s</string>
+    <string name="backup_cloud_error">"Erreur cloud "</string>
     <string name="backup_no_internet">Pas de connexion Internet.</string>
     <string name="backup_serialization_error">Échec du traitement des données pour l\'envoi.</string>
-    <string name="backup_unknown_error">Une erreur est survenue : %1$s</string>
+    <string name="backup_unknown_error">"Une erreur est survenue "</string>
     <string name="go_forward_button">Forwe</string>
     <string name="autofill_button">complétion</string>
 </resources>

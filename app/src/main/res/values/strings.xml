@@ -120,7 +120,7 @@
     <string name="auth_operation_not_allowed">Операция запрещена</string>
     <string name="auth_invalid_custom_token">Недействительный токен</string>
     <string name="auth_credential_mismatch">Несоответствие учётных данных</string>
-    <string name="auth_unknown_error">Неизвестная ошибка: %1$s</string>
+    <string name="auth_unknown_error">Неизвестная ошибка</string>
     <string name="auth_unknown_error_no_message">Произошла неизвестная ошибка</string>
     <string name="deck_detail_load_error">Ошибка загрузки колоды</string>
     <string name="autofill_connection_error">Не удалось получить данные: проверьте подключение</string>
@@ -136,10 +136,10 @@
     <string name="backup_permission_denied">Доступ запрещен. Попробуйте выйти и войти снова.</string>
     <string name="backup_quota_exceeded">Превышена квота использования базы.</string>
     <string name="backup_invalid_argument">Бэкап слишком большой (>1 МБ) или содержит неверные данные.</string>
-    <string name="backup_cloud_error">Ошибка облака: %1$s</string>
+    <string name="backup_cloud_error">Ошибка облака</string>
     <string name="backup_no_internet">Нет подключения к интернету.</string>
     <string name="backup_serialization_error">Не удалось обработать данные для отправки.</string>
-    <string name="backup_unknown_error">Произошла ошибка: %1$s</string>
+    <string name="backup_unknown_error">Произошла ошибка</string>
     <string name="go_forward_button">Далее</string>
     <string name="autofill_button">Заполнить</string>
 </resources>

@@ -119,7 +119,7 @@ Press + to create the first one</string>
     <string name="auth_operation_not_allowed">Operation not allowed</string>
     <string name="auth_invalid_custom_token">Invalid custom token</string>
     <string name="auth_credential_mismatch">Credential mismatch</string>
-    <string name="auth_unknown_error">Unknown error: %1$s</string>
+    <string name="auth_unknown_error">Unknown error</string>
     <string name="auth_unknown_error_no_message">An unknown error has occurred</string>
     <string name="deck_detail_load_error">Error loading deck</string>
     <string name="autofill_connection_error">Failed to get data: check connection</string>
@@ -135,10 +135,10 @@ Press + to create the first one</string>
     <string name="backup_permission_denied">Permission denied. Please try to log out and log in again.</string>
     <string name="backup_quota_exceeded">Database usage quota exceeded.</string>
     <string name="backup_invalid_argument">Backup is too large (>1 MB) or contains invalid data.</string>
-    <string name="backup_cloud_error">Cloud error: %1$s</string>
+    <string name="backup_cloud_error">Cloud error</string>
     <string name="backup_no_internet">No internet connection.</string>
     <string name="backup_serialization_error">Failed to process data for sending.</string>
-    <string name="backup_unknown_error">An error has occurred: %1$s</string>
+    <string name="backup_unknown_error">An error has occurred</string>
     <string name="go_forward_button">Next</string>
     <string name="autofill_button">Autofill</string>
 </resources>

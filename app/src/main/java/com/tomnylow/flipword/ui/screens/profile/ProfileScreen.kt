@@ -142,9 +142,7 @@ fun ProfileScreen(
                 AccountInfoCard(
                     email = state.userEmail,
                     name = state.username,
-                    onSignOutClick = {
-                        // TODO
-                    },
+                    onSignOutClick = viewModel::signOut,
                     onLoginClick = onLoginClick,
                     onPushClick = viewModel::pushDataBackup,
                     onFetchClick = viewModel::fetchDataBackup,

@@ -18,6 +18,7 @@ import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationTimeUseCa
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationsEnabledUseCase
 import com.tomnylow.flipword.domain.usecase.user.UpdateNotificationScheduleUseCase
 import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
+import com.tomnylow.flipword.domain.usecase.user.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +42,7 @@ class ProfileViewModel @Inject constructor(
     private val updateNotificationScheduleUseCase: UpdateNotificationScheduleUseCase,
     private val fetchBackupUseCase: FetchBackupUseCase,
     private val pushBackupUseCase: PushBackupUseCase,
+    private val signOutUseCase: SignOutUseCase,
     getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
@@ -119,6 +121,15 @@ class ProfileViewModel @Inject constructor(
             result.exceptionOrNull()?.let {
                 viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
             } ?: _snackbarMessage.emit(R.string.backup_fetch_success)
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            val result = signOutUseCase()
+            result.exceptionOrNull()?.let {
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            }
         }
     }
 
