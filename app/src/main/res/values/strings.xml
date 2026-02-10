@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FlipWord</string>
-    <string name="no_definition">No definition</string>
-    <string name="no_definitions_found">No definitions found</string>
+    <string name="no_translation">Перевод не найден</string>
     <string name="repeat_screen_title">Повторение</string>
     <string name="go_back_description">Назад</string>
     <string name="no_cards_to_repeat_text">Нет карточек для повторения</string>
@@ -54,7 +53,7 @@
     <string name="words_learned_stat">Изучено слов</string>
     <string name="accuracy_stat">Точность</string>
     <string name="add_word_of_the_day_dialog_title">Выберите колоду</string>
-    <string name="word_of_the_day_title">Слово дня</string>
+    <string name="word_of_the_day_title">Случайное слово</string>
     <string name="add_button">Добавить</string>
     <string name="home_repeat_button_title">Слов на повторение</string>
     <string name="home_repeat_button_message">Нажмите, чтобы начать урок</string>

@@ -1,6 +1,7 @@
 package com.tomnylow.flipword.data.repository
 
 import com.tomnylow.flipword.data.remote.DictionaryApi
+import com.tomnylow.flipword.data.remote.RandomApi
 import com.tomnylow.flipword.data.remote.TranslationApi
 import com.tomnylow.flipword.domain.model.DictionaryData
 import com.tomnylow.flipword.domain.repository.ExternalWordRepository
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 class ExternalWordRepositoryImpl @Inject constructor(
     private val dictionaryApi: DictionaryApi,
-    private val translationApi: TranslationApi
+    private val translationApi: TranslationApi,
+    private val randomApi: RandomApi,
 ) : ExternalWordRepository {
 
     override suspend fun translate(word: String, from: String, to: String): String? {
@@ -54,6 +56,17 @@ class ExternalWordRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+
+    override suspend fun getRandomWord(): Result<String> = try {
+        val word = randomApi.getWord().firstOrNull()
+        if (!word.isNullOrBlank()) {
+            Result.success(word)
+        } else {
+            Result.failure(IllegalStateException("Received empty word from API"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
     private fun parseGoogleTranslation(json: JsonElement): String? {

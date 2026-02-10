@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tomnylow.flipword.R
+import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Deck
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -66,7 +67,10 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.home_screen_greeting) + (state.username?.let { ", $it" } ?: "")) })
+            TopAppBar(title = {
+                Text(stringResource(R.string.home_screen_greeting) + (state.username?.let { ", $it" }
+                    ?: ""))
+            })
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
@@ -88,9 +92,8 @@ fun HomeScreen(
             )
 
             WordOfTheDayCard(
-                wordOfTheDay = state.wordOfTheDay,
-                definitionOfTheDay = state.definitionOfTheDay,
-                onAddWordOfTheDayClick =  viewModel::onAddWordOfTheDayClick
+                card = state.wordOfTheDayCard,
+                onAddWordOfTheDayClick = viewModel::onAddWordOfTheDayClick
             )
 
             RepeatCard(
@@ -147,8 +150,7 @@ private fun DeckSelectionDialog(
 
 @Composable
 private fun WordOfTheDayCard(
-    wordOfTheDay: String,
-    definitionOfTheDay: String?,
+    card: Card?,
     onAddWordOfTheDayClick: () -> Unit
 ) {
     Card(
@@ -166,29 +168,39 @@ private fun WordOfTheDayCard(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
-            Text(
-                text = wordOfTheDay,
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = definitionOfTheDay
-                    ?: stringResource(R.string.no_definitions_found),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (card == null) {
+                CircularProgressIndicator()
+            } else {
+                Text(
+                    text = card.word,
+                    style = MaterialTheme.typography.headlineLarge,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = card.translation ?: stringResource(R.string.no_translation),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                card.definition?.let {
+                    Text(
+                        text = card.definition,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onAddWordOfTheDayClick,
-                enabled = definitionOfTheDay != null
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.padding(start = 8.dp))
-                Text(stringResource(R.string.add_button))
+                Button(
+                    onClick = onAddWordOfTheDayClick,
+                    enabled = card.translation != null
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.add_button))
+                }
             }
+
         }
     }
 }
