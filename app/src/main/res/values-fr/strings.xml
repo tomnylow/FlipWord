@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">FlipWord</string>
     <string name="no_translation">Aucune définition...</string>
+    <string name="repeat_notif_text">%1$d mots vous attendent</string>
     <string name="no_definitions_found">Aucune définition trouvée</string>
     <string name="repeat_screen_title">Répétition</string>
     <string name="go_back_description">Retourner</string>
@@ -139,4 +140,6 @@ Appuyez sur + pour créer le premier</string>
     <string name="backup_unknown_error">"Une erreur est survenue "</string>
     <string name="go_forward_button">Forwe</string>
     <string name="autofill_button">complétion</string>
+    <string name="repeat_notif_channel_name">répétition des mots</string>
+    <string name="repeat_notif_title">il est temps de répéter les mots</string>
 </resources>

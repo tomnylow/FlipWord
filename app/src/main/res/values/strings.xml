@@ -141,4 +141,8 @@
     <string name="backup_unknown_error">Произошла ошибка</string>
     <string name="go_forward_button">Далее</string>
     <string name="autofill_button">Заполнить</string>
+    <string name="repeat_notif_channel_name">Повторение слов</string>
+    <string name="repeat_notif_title">Пора повторить слова</string>
+    <string name="repeat_notif_text">Вас ждут %1$d слов для повторения, возвращайтесь!</string>
+    <string name="no_definitions_found">Определение не найдено</string>
 </resources>
