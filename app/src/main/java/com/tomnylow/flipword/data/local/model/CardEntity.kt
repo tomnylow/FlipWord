@@ -2,6 +2,7 @@ package com.tomnylow.flipword.data.local.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.tomnylow.flipword.data.local.LocalDateSerializer
 import com.tomnylow.flipword.domain.model.Card
@@ -19,7 +20,8 @@ import java.time.LocalDate
             childColumns = ["deckId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["deckId"])]
 )
 data class CardEntity(
     @PrimaryKey(autoGenerate = true)

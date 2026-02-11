@@ -1,7 +1,6 @@
 package com.tomnylow.flipword.domain.usecase.word
 
 import com.tomnylow.flipword.domain.model.Card
-import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.repository.ExternalWordRepository
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import kotlinx.coroutines.flow.first
@@ -26,24 +25,35 @@ class GetWordOfTheDayUseCase @Inject constructor(
 
     suspend operator fun invoke(): Card {
         val settings = getSettingsUseCase().first()
+        val targetLanguageCode = settings.learningLanguage.code
+        val nativeLanguageCode = settings.nativeLanguage.code
 
-        val wordResult = externalWordRepository.getRandomWord()
-        val word = wordResult.getOrElse {
-            words.random()
-        }
+        var englishWord: String
+        var targetWord: String?
 
-        val dictionaryData = externalWordRepository.getDictionaryData(word, settings.nativeLanguage.code)
+        do {
+            englishWord = externalWordRepository.getRandomWord().getOrElse {
+                words.random()
+            }
+            targetWord = if (targetLanguageCode != "en") {
+                externalWordRepository.translate(englishWord, "en", targetLanguageCode)
+            } else {
+                englishWord
+            }
+        } while (targetWord == null)
 
-        val translatedWord = if (settings.nativeLanguage.code != "en") {
-            externalWordRepository.translate(word, "en", settings.nativeLanguage.code)
+        val nativeTranslation = if (nativeLanguageCode != "en") {
+            externalWordRepository.translate(englishWord, "en", nativeLanguageCode)
         } else {
-            word
+            englishWord
         }
+
+        val dictionaryData = externalWordRepository.getDictionaryData(englishWord, nativeLanguageCode)
 
         return Card(
-            word = word,
+            word = targetWord,
             definition = dictionaryData?.definition,
-            translation = translatedWord,
+            translation = nativeTranslation,
             usageExample = dictionaryData?.example,
             deckId = -1
         )
