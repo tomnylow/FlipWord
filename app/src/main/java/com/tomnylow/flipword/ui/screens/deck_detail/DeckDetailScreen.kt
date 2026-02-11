@@ -27,7 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+
 import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.Card
 import com.tomnylow.flipword.domain.model.Language
