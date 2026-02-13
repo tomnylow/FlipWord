@@ -41,36 +41,4 @@ data class CardEntity(
     val updatedAt: Long = System.currentTimeMillis(),
 )
 
-fun CardEntity.toDomain(): Card {
-    return Card(
-        id = id,
-        word = word,
-        translation = translation,
-        definition = definition,
-        usageExample = usageExample,
-        deckId = deckId,
-        sm2Params = SM2Params(
-            easeFactor = easeFactor,
-            interval = interval,
-            repetition = repetition,
-            nextReviewDate = nextReviewDate
-        ),
-        updatedAt = updatedAt
-    )
-}
 
-fun Card.toEntity(): CardEntity {
-    return CardEntity(
-        id = id,
-        word = word,
-        translation = translation,
-        definition = definition,
-        usageExample = usageExample,
-        deckId = deckId,
-        easeFactor = sm2Params.easeFactor,
-        interval = sm2Params.interval,
-        repetition = sm2Params.repetition,
-        nextReviewDate = sm2Params.nextReviewDate,
-        updatedAt = updatedAt
-    )
-}

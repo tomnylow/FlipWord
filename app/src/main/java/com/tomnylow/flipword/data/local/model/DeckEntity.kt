@@ -15,19 +15,4 @@ data class DeckEntity(
 
 )
 
-fun DeckEntity.toDomain(): Deck {
-    return Deck(
-        id = id,
-        name = name,
-        updatedAt = updatedAt
 
-    )
-}
-
-fun Deck.toEntity(): DeckEntity {
-    return DeckEntity(
-        id = id,
-        name = name,
-        updatedAt = updatedAt
-    )
-}
