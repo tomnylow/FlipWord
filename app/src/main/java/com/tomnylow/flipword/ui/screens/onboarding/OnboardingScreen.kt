@@ -81,7 +81,11 @@ fun OnboardingScreen(
     onSkipLoginClick: () -> Unit,
     onLoginClick: () -> Unit
 ) {
-    val pages = getOnboardingPages(onLoginClick, onSkipLoginClick)
+    val pages = getOnboardingPages(
+        onLoginClick = onLoginClick,
+        onSkipLoginClick = onSkipLoginClick,
+        viewModel = viewModel
+    )
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val animationScope = rememberCoroutineScope()
 
@@ -213,11 +217,14 @@ private fun OnboardingPageContent(page: OnboardingPageInfo, viewModel: Onboardin
 @Composable
 private fun getOnboardingPages(
     onLoginClick: () -> Unit,
-    onSkipLoginClick: () -> Unit
+    onSkipLoginClick: () -> Unit,
+    viewModel: OnboardingViewModel
 ): List<OnboardingPageInfo> {
     val notificationsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = {}
+        onResult = { isEnabled ->
+            viewModel.updateNotificationsEnabled(isEnabled)
+        }
     )
 
     val exactAlarmPermissionLauncher = rememberLauncherForActivityResult(
