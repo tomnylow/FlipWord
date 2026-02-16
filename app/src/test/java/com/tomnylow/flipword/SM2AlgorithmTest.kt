@@ -1,205 +1,140 @@
-package com.tomnylow.flipword
+package com.tomnylow.flipword.domain.sm2
 
-import com.tomnylow.flipword.domain.sm2.Rating
-import com.tomnylow.flipword.domain.sm2.SM2Algorithm
-import com.tomnylow.flipword.domain.sm2.SM2Params
-
-
+import com.tomnylow.flipword.domain.model.Card
+import com.tomnylow.flipword.domain.sm2.SM2Algorithm.isTimeForReview
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import java.time.LocalDate
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class SM2AlgorithmTest {
-    private val today = LocalDate.now()
 
-    // Тесты для calculateNextReview с низкими оценками (AGAIN)
+    private val baseDate = LocalDate.of(2024, 1, 1)
+
     @Test
-    fun `when rating is AGAIN should reset interval and repetition`() {
-        val currentParams = SM2Params(
-            easeFactor = 2.5,
-            interval = 10,
-            repetition = 5,
-            nextReviewDate = today.plusDays(5)
-        )
+    fun `calculateNextReview AGAIN rating resets parameters`() {
+        val initial = SM2Params.INITIAL.copy(nextReviewDate = baseDate)
+        val result = SM2Algorithm.calculateNextReview(initial, Rating.AGAIN, baseDate)
 
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.AGAIN, today)
-
-        assertEquals(2.3, result.easeFactor, 0.01)
-        assertEquals(1, result.interval)
+        assertEquals(2.3, result.easeFactor, 0.001)
+        assertEquals(0, result.interval)
         assertEquals(0, result.repetition)
-        assertEquals(today.plusDays(1), result.nextReviewDate)
+        assertEquals(baseDate, result.nextReviewDate)
     }
 
     @Test
-    fun `when rating is AGAIN with high ease factor should decrease it`() {
-        val currentParams = SM2Params(
-            easeFactor = 2.8,
-            interval = 10,
-            repetition = 5,
-            nextReviewDate = today.plusDays(5)
-        )
+    fun `calculateNextReview NORMAL rating first repetition`() {
+        val initial = SM2Params.INITIAL.copy(nextReviewDate = baseDate)
+        val result = SM2Algorithm.calculateNextReview(initial, Rating.NORMAL, baseDate)
 
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.AGAIN, today)
-
-        assertEquals(2.6, result.easeFactor, 0.01)
-        assertEquals(1, result.interval)
-        assertEquals(0, result.repetition)
-    }
-    // Тесты для NORMAL rating (первое повторение)
-    @Test
-    fun `when rating is NORMAL on first repetition should set interval to 1`() {
-        val currentParams = SM2Params(
-            easeFactor = 2.5,
-            interval = 1,
-            repetition = 0,
-            nextReviewDate = today
-        )
-
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.NORMAL, today)
-
-        assertEquals(2.5, result.easeFactor, 0.01)
+        assertEquals(2.36, result.easeFactor, 0.001)
         assertEquals(1, result.interval)
         assertEquals(1, result.repetition)
-        assertEquals(today.plusDays(1), result.nextReviewDate)
+        assertEquals(baseDate.plusDays(1), result.nextReviewDate)
     }
 
-    // Тесты для PERFECT rating
     @Test
-    fun `when rating is PERFECT on first repetition should set interval to 1`() {
-        val currentParams = SM2Params.INITIAL
+    fun `calculateNextReview PERFECT rating first repetition`() {
+        val initial = SM2Params.INITIAL.copy(nextReviewDate = baseDate)
+        val result = SM2Algorithm.calculateNextReview(initial, Rating.PERFECT, baseDate)
 
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.PERFECT, today)
-
-        assertEquals(2.6, result.easeFactor, 0.01) // 2.5 + (0.1 - (5-5)*(...)) = 2.6
+        assertEquals(2.6, result.easeFactor, 0.001)
         assertEquals(1, result.interval)
         assertEquals(1, result.repetition)
-        assertEquals(today.plusDays(1), result.nextReviewDate)
+        assertEquals(baseDate.plusDays(1), result.nextReviewDate)
     }
 
     @Test
-    fun `when rating is PERFECT on second repetition should set interval to 6`() {
-        val currentParams = SM2Params(
-            easeFactor = 2.5,
+    fun `calculateNextReview NORMAL rating second repetition`() {
+        val current = SM2Params(
+            easeFactor = 2.36,
             interval = 1,
             repetition = 1,
-            nextReviewDate = today
+            nextReviewDate = baseDate
         )
+        val result = SM2Algorithm.calculateNextReview(current, Rating.NORMAL, baseDate)
 
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.PERFECT, today)
-
-        assertEquals(2.6, result.easeFactor, 0.01)
+        assertEquals(2.22, result.easeFactor, 0.001)
         assertEquals(6, result.interval)
         assertEquals(2, result.repetition)
-        assertEquals(today.plusDays(6), result.nextReviewDate)
+        assertEquals(baseDate.plusDays(6), result.nextReviewDate)
     }
 
     @Test
-    fun `when rating is NORMAL on third repetition should calculate interval using ease factor`() {
-        val currentParams = SM2Params(
-            easeFactor = 2.5,
+    fun `calculateNextReview NORMAL rating third repetition`() {
+        val current = SM2Params(
+            easeFactor = 2.22,
             interval = 6,
             repetition = 2,
-            nextReviewDate = today
+            nextReviewDate = baseDate
         )
+        val result = SM2Algorithm.calculateNextReview(current, Rating.NORMAL, baseDate)
 
-        val result = SM2Algorithm.calculateNextReview(currentParams, Rating.NORMAL, today)
-
-        val newEaseFactor = 2.5 // 2.5 + (0.1 - (5-4)*(0.08 + (5-4)*0.02))
-        val expectedInterval = (6 * newEaseFactor).toInt()
-
-        assertEquals(newEaseFactor, result.easeFactor, 0.01)
-        assertEquals(expectedInterval, result.interval)
+        assertEquals(2.08, result.easeFactor, 0.001)
+        assertEquals(12, result.interval)
         assertEquals(3, result.repetition)
-        assertEquals(today.plusDays(expectedInterval.toLong()), result.nextReviewDate)
-    }
-
-
-
-    // Тесты для isTimeForReview
-    @Test
-    fun `isTimeForReview should return true when next review date is today`() {
-        val params = SM2Params(
-            easeFactor = 2.5,
-            interval = 1,
-            repetition = 0,
-            nextReviewDate = today
-        )
-
-        assertTrue(SM2Algorithm.isTimeForReview(params, today))
+        assertEquals(baseDate.plusDays(12), result.nextReviewDate)
     }
 
     @Test
-    fun `isTimeForReview should return true when next review date is in past`() {
-        val params = SM2Params(
-            easeFactor = 2.5,
-            interval = 1,
-            repetition = 0,
-            nextReviewDate = today.minusDays(1)
+    fun `calculateNextReview PERFECT rating third repetition`() {
+        val current = SM2Params(
+            easeFactor = 2.22,
+            interval = 6,
+            repetition = 2,
+            nextReviewDate = baseDate
         )
+        val result = SM2Algorithm.calculateNextReview(current, Rating.PERFECT, baseDate)
 
-        assertTrue(SM2Algorithm.isTimeForReview(params, today))
+        assertEquals(2.32, result.easeFactor, 0.001)
+        assertEquals(13, result.interval)
+        assertEquals(3, result.repetition)
+        assertEquals(baseDate.plusDays(13), result.nextReviewDate)
     }
 
     @Test
-    fun `isTimeForReview should return false when next review date is in future`() {
-        val params = SM2Params(
-            easeFactor = 2.5,
-            interval = 1,
-            repetition = 0,
-            nextReviewDate = today.plusDays(1)
+    fun `calculateNextReview ease factor clamped to minimum 1_3`() {
+        val current = SM2Params(
+            easeFactor = 1.4,
+            interval = 6,
+            repetition = 2,
+            nextReviewDate = baseDate
         )
+        val result = SM2Algorithm.calculateNextReview(current, Rating.NORMAL, baseDate)
 
-        assertFalse(SM2Algorithm.isTimeForReview(params, today))
+        assertEquals(1.3, result.easeFactor, 0.001)
     }
 
     @Test
-    fun `isTimeForReview with custom date should work correctly`() {
-        val params = SM2Params(
-            easeFactor = 2.5,
-            interval = 1,
-            repetition = 0,
-            nextReviewDate = today.plusDays(5)
+    fun `isTimeForReview returns true when nextReviewDate is today`() {
+        val params = SM2Params.INITIAL.copy(nextReviewDate = baseDate)
+        val card = Card(
+            word = "",
+            deckId = 1, sm2Params = params
         )
-
-        // Проверка через 3 дня
-        assertFalse(SM2Algorithm.isTimeForReview(params, today.plusDays(3)))
-        // Проверка через 5 дней
-        assertTrue(SM2Algorithm.isTimeForReview(params, today.plusDays(5)))
-        // Проверка через 7 дней
-        assertTrue(SM2Algorithm.isTimeForReview(params, today.plusDays(7)))
+        assertTrue(card.isTimeForReview(baseDate))
     }
 
-
-
-    // Тест для проверки целостности данных после вычислений
     @Test
-    fun `calculateNextReview should maintain data consistency`() {
-        val testCases = listOf(
-            Triple(SM2Params.INITIAL, Rating.AGAIN, 1),
-            Triple(SM2Params.INITIAL, Rating.NORMAL, 1),
-            Triple(SM2Params.INITIAL, Rating.PERFECT, 1),
-            Triple(
-                SM2Params(
-                    easeFactor = 2.5,
-                    interval = 6,
-                    repetition = 2,
-                    nextReviewDate = today
-                ),
-                Rating.PERFECT,
-                15
-            )
+    fun `isTimeForReview returns true when nextReviewDate is in past`() {
+        val params = SM2Params.INITIAL.copy(nextReviewDate = baseDate.minusDays(1))
+        val card = Card(
+            word = "",
+            deckId = 1,
+            sm2Params = params,
         )
+        assertTrue(card.isTimeForReview(baseDate))
+    }
 
-        for ((params, rating, expectedMinInterval) in testCases) {
-            val result = SM2Algorithm.calculateNextReview(params, rating, today)
-
-            // Проверка базовых инвариантов
-            assertTrue(result.easeFactor >= 1.3, "Ease factor should be >= 1.3")
-            assertTrue(result.interval >= expectedMinInterval, "Interval should be >= $expectedMinInterval")
-            assertTrue(result.repetition >= 0, "Repetition should be >= 0")
-            assertFalse(result.nextReviewDate.isBefore(today), "Next review date should not be in past")
-        }
+    @Test
+    fun `isTimeForReview returns false when nextReviewDate is in future`() {
+        val params = SM2Params.INITIAL.copy(nextReviewDate = baseDate.plusDays(1))
+        val card = Card(
+            word = "",
+            deckId = 1,
+            sm2Params = params
+        )
+        assertFalse(card.isTimeForReview(baseDate))
     }
 }

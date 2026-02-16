@@ -1,6 +1,9 @@
 package com.tomnylow.flipword.di
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.tomnylow.flipword.data.remote.DictionaryApi
+import com.tomnylow.flipword.data.remote.RandomApi
 import com.tomnylow.flipword.data.remote.TranslationApi
 import dagger.Module
 import dagger.Provides
@@ -64,5 +67,28 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(TranslationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRandomApi(okHttpClient: OkHttpClient, json: Json): RandomApi {
+        return Retrofit.Builder()
+            .baseUrl("https://random-word-api.herokuapp.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(RandomApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirestore(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
     }
 }

@@ -12,7 +12,7 @@ data class SM2Params(
     companion object {
         val INITIAL = SM2Params(
             easeFactor = 2.5,
-            interval = 1,
+            interval = 0,
             repetition = 0,
             nextReviewDate = LocalDate.now()
         )
@@ -20,8 +20,8 @@ data class SM2Params(
 }
 
 enum class Rating(val value: Int) {
-    AGAIN(2),
-    NORMAL(4),
+    AGAIN(0),
+    NORMAL(3),
     PERFECT(5)
 }
 
@@ -37,9 +37,9 @@ object SM2Algorithm {
             rating.value <= 2 -> {
                 SM2Params(
                     easeFactor = maxOf(1.3, currentParams.easeFactor - 0.2),
-                    interval = 1,
+                    interval = 0,
                     repetition = 0,
-                    nextReviewDate = currentDate.plusDays(1)
+                    nextReviewDate = currentDate
                 )
             }
             else -> {

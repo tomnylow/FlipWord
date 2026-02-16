@@ -1,4 +1,4 @@
-package com.tomnylow.flipword.notifications
+package com.tomnylow.flipword.data.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -27,7 +27,7 @@ class NotificationsHelper @Inject constructor(
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            REPEAT_CHANNEL_ID, "Повторение слов",
+            REPEAT_CHANNEL_ID, context.getString(R.string.repeat_notif_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         )
         notificationsManager?.createNotificationChannel(channel)
@@ -41,11 +41,11 @@ class NotificationsHelper @Inject constructor(
         val pendingIntent =
             PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, REPEAT_CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Пора повторить слова")
+            .setSmallIcon(R.drawable.outline_cards_stack_24)
+            .setContentTitle(context.getString(R.string.repeat_notif_title))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setContentText("Вас ждут ${dueCards.size} слов для повторения, возвращайтесь!")
+            .setContentText(context.getString(R.string.repeat_notif_text, dueCards.size))
             .build()
         notificationsManager?.notify(REPEAT_NOTIFICATION_ID, notification)
     }

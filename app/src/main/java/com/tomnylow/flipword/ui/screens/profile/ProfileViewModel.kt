@@ -1,11 +1,15 @@
 package com.tomnylow.flipword.ui.screens.profile
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.tomnylow.flipword.R
 import com.tomnylow.flipword.domain.model.AppTheme
 import com.tomnylow.flipword.domain.model.Language
 import com.tomnylow.flipword.domain.model.Settings
-import com.tomnylow.flipword.domain.model.User
+import com.tomnylow.flipword.domain.usecase.external.FetchBackupUseCase
+import com.tomnylow.flipword.domain.usecase.external.PushBackupUseCase
 import com.tomnylow.flipword.domain.usecase.settings.GetSettingsUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateAppThemeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateLearningLanguageUseCase
@@ -13,13 +17,18 @@ import com.tomnylow.flipword.domain.usecase.settings.UpdateNativeLanguageUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationTimeUseCase
 import com.tomnylow.flipword.domain.usecase.settings.UpdateNotificationsEnabledUseCase
 import com.tomnylow.flipword.domain.usecase.user.UpdateNotificationScheduleUseCase
+import com.tomnylow.flipword.domain.usecase.user.GetUserUseCase
+import com.tomnylow.flipword.domain.usecase.user.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,16 +39,32 @@ class ProfileViewModel @Inject constructor(
     private val updateThemeUseCase: UpdateAppThemeUseCase,
     private val updateNotificationsEnabledUseCase: UpdateNotificationsEnabledUseCase,
     private val updateNotificationTimeUseCase: UpdateNotificationTimeUseCase,
-    private val updateNotificationScheduleUseCase: UpdateNotificationScheduleUseCase
+    private val updateNotificationScheduleUseCase: UpdateNotificationScheduleUseCase,
+    private val fetchBackupUseCase: FetchBackupUseCase,
+    private val pushBackupUseCase: PushBackupUseCase,
+    private val signOutUseCase: SignOutUseCase,
+    getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
-    val state: StateFlow<SettingsState> = getSettingsUseCase()
-        .map { settings -> SettingsState(settings = settings) }
+    private val _snackbarMessage = MutableSharedFlow<Int>()
+    val snackbarMessage = _snackbarMessage.asSharedFlow()
+
+    val state: StateFlow<SettingsState> = combine(
+        getSettingsUseCase(),
+        getUserUseCase()
+    ) { settings, user ->
+        SettingsState(
+            settings = settings,
+            username = user?.displayName,
+            userEmail = user?.email
+        )
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = SettingsState()
         )
+
 
     fun updateNativeLanguage(language: Language) {
         viewModelScope.launch {
@@ -80,9 +105,54 @@ class ProfileViewModel @Inject constructor(
             )
         }
     }
+
+    fun pushDataBackup() {
+        viewModelScope.launch {
+            val result = pushBackupUseCase()
+            result.exceptionOrNull()?.let {
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            } ?: _snackbarMessage.emit(R.string.backup_push_success)
+        }
+    }
+
+    fun fetchDataBackup() {
+        viewModelScope.launch {
+            val result = fetchBackupUseCase()
+            result.exceptionOrNull()?.let {
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            } ?: _snackbarMessage.emit(R.string.backup_fetch_success)
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            val result = signOutUseCase()
+            result.exceptionOrNull()?.let {
+                viewModelScope.launch { _snackbarMessage.emit(processBackupException(it)) }
+            }
+        }
+    }
+
+    @StringRes
+    private fun processBackupException(exception: Throwable): Int {
+        return when (exception) {
+            is IllegalStateException -> R.string.backup_not_authorized
+            is FirebaseFirestoreException -> when (exception.code) {
+                FirebaseFirestoreException.Code.UNAVAILABLE -> R.string.backup_server_unavailable
+                FirebaseFirestoreException.Code.PERMISSION_DENIED -> R.string.backup_permission_denied
+                FirebaseFirestoreException.Code.RESOURCE_EXHAUSTED -> R.string.backup_quota_exceeded
+                FirebaseFirestoreException.Code.INVALID_ARGUMENT -> R.string.backup_invalid_argument
+                else -> R.string.backup_cloud_error
+            }
+            is IOException -> R.string.backup_no_internet
+            is SerializationException -> R.string.backup_serialization_error
+            else -> R.string.backup_unknown_error
+        }
+    }
 }
 
 data class SettingsState(
     val settings: Settings = Settings(),
-    val user: User? = null
+    val username: String? = null,
+    val userEmail: String? = null,
 )
